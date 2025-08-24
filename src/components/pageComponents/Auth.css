@@ -1,0 +1,174 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Form container */
+.form-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f5faff; /* light blue background */
+  background-size: cover;
+  background-position: center;
+  padding-top: 100px; /* navbar space */
+}
+
+/* Navbar title and menu buttons (Home/About Us/FAQs) */
+.nav-title h2 {
+  color: white !important;
+}
+
+.nav-menu ul li .link {
+  color: white !important;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.nav-menu ul li .link:hover {
+  text-decoration: underline;
+}
+
+/* Form */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 30px;
+  border-radius: 12px;
+  background-color: rgba(255,255,255,0.95); /* slightly transparent white */
+  box-shadow: 0px 8px 20px rgba(26,117,255,0.2);
+  width: 400px;
+  color: #1a75ff;
+}
+
+/* Form heading */
+.auth-form h2 {
+  color: #1a75ff !important;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+/* Inputs */
+.auth-form input {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #1a75ff;
+  color: black;
+  height: 45px;
+  width: 100%;
+  font-size: 14px;
+  background-color: white;
+}
+
+.auth-form input::placeholder {
+  color: #1a75ff !important;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: #1558b0; 
+  color: black;
+}
+
+/* Submit Button */
+.auth-btn {
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background-color: #1a75ff;
+  color: white !important;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all 0.3s;
+}
+
+/* Keep submit button colors consistent */
+.auth-btn:hover,
+.auth-btn:focus,
+.auth-btn:active {
+  background-color: #1a75ff !important; /* same blue */
+  color: white !important;               /* always white */
+  outline: none;
+  box-shadow: none;
+}
+
+/* OR Text */
+.auth-or {
+  text-align: center;
+  font-size: 14px;
+  color: black;
+}
+
+/* Social Buttons */
+.auth-social {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.3s;
+  color: white !important; /* always white text */
+}
+
+/* Social button colors */
+.social-btn.google { background-color: #db4437; }
+.social-btn.microsoft { background-color: #1a75ff; }
+.social-btn.apple { background-color: #000; }
+.social-btn.phone { background-color: #00796b; }
+
+/* Keep original colors on hover/focus/click but add subtle effect */
+.social-btn:hover,
+.social-btn:focus,
+.social-btn:active {
+  opacity: 0.85;               /* slight fade */
+  transform: translateY(-2px); /* small lift */
+  color: white !important;     /* text stays white */
+}
+
+/* Explicit hover colors to prevent fading to white */
+.social-btn.google:hover { background-color: #db4437; }
+.social-btn.microsoft:hover { background-color: #1a75ff; }
+.social-btn.apple:hover { background-color: #000; }
+.social-btn.phone:hover { background-color: #00796b; }
+
+/* Footer link */
+.auth-footer {
+  text-align: center;
+  font-size: 14px;
+  color: #1a75ff !important;
+  margin-top: 10px;
+}
+
+.link {
+  color: #1a75ff !important;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .auth-form {
+    width: 90%;
+    padding: 20px;
+  }
+}
