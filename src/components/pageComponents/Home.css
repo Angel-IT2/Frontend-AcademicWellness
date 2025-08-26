@@ -1,0 +1,135 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Main container with background image */
+.home-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background-image: url('./academics.jpg'); /* background image */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: white; /* text color over background */
+  padding-top: 120px; /* leave space for fixed header */
+}
+
+/* Home page content */
+.home-content {
+  text-align: center;
+  margin-top: 100px;
+  background-color: rgba(0, 0, 0, 0.4); /* overlay for readability */
+  padding: 40px;
+  border-radius: 15px;
+  border: 2px solid white; /* white border surrounding content */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* subtle shadow */
+  max-width: 800px;
+}
+
+/* Welcome text */
+.welcome-text {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+/* Subtitle - increased size */
+.subtitle {
+  font-size: 32px; /* increased from 20px to 32px */
+  font-weight: 300;
+  line-height: 1.5;
+  margin-top: 10px;
+}
+
+/* Navigation */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  background: #1a75ff; /* primary blue navbar */
+  z-index: 100;
+}
+
+/* Navbar title always white */
+.nav-title h2 {
+  color: white; /* ensures UniPath stays white */
+  margin: 0;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+/* Nav menu */
+.nav-menu ul {
+  display: flex;
+  list-style: none;
+  gap: 25px;
+}
+
+.nav-menu ul li .link {
+  background: none;
+  border: none;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.nav-menu ul li .link:hover {
+  text-decoration: underline;
+}
+
+/* Buttons */
+.button-group .btn {
+  width: 120px;
+  height: 40px;
+  border-radius: 30px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  margin-left: 15px;
+  transition: all 0.3s;
+  background: white;
+  color: #1a75ff;
+}
+
+.button-group .btn:hover {
+  background: #e0f0ff;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .home-content {
+    padding: 20px;
+    margin-top: 60px;
+  }
+
+  .welcome-text {
+    font-size: 32px;
+  }
+
+  .subtitle {
+    font-size: 20px; /* smaller on mobile */
+  }
+
+  .button-group .btn {
+    width: 100px;
+    height: 35px;
+  }
+
+  .nav-menu ul li .link {
+    font-size: 14px;
+  }
+}

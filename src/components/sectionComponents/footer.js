@@ -1,15 +1,14 @@
-import React from 'react';
+import React from "react";
+import "./footer.css";
 
 const Footer = () => {
   return (
-    <div>
-      <div className="copyrights">
-        <p>
-			FRONTEND TEMPLATE FOOTER<br/>
-          &copy; {new Date().getFullYear()} Business-Name. All Rights Reserved. | Developed by Development-Group-Name
-        </p>
-      </div>
-    </div>
+    <footer className="footer">
+      <p>
+        UniPath<br/>
+        &copy; 2025 UniPath. All Rights Reserved. | Developed by Group 22
+      </p>
+    </footer>
   );
 };
 

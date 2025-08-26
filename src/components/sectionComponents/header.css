@@ -1,0 +1,38 @@
+/* Header container */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background-color: #1e90ff; /* blue light */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Logo styling */
+.logo {
+  color: white;
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* Navigation links */
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 25px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s, transform 0.2s;
+}
+
+.nav-link:hover {
+  color: #ffeb3b; /* subtle yellow hover */
+  transform: scale(1.05);
+}
