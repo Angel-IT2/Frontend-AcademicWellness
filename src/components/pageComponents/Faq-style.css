@@ -43,6 +43,7 @@
     border-radius: 30px;
     display: flex;
     padding: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 255, 0.4); /* soft blue glow */
 }
 
 .search input{
@@ -71,7 +72,7 @@
 
 .search input:focus {
     outline: none;
-    box-shadow: 0 0 5px rgba(0, 0, 255, 0.3); /* soft blue glow */
+    
     border-radius: 30px;
 }
 
