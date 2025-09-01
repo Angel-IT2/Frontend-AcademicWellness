@@ -1,0 +1,17 @@
+ [
+  {
+    "id": 1,
+    "question": "What is UniPath?",
+    "answer": "UniPath is a platform that helps students explore universities and programs."
+  },
+  {
+    "id": 2,
+    "question": "How do I register?",
+    "answer": "Click on the register button on the top right and fill out the form."
+  },
+  {
+    "id": 3,
+    "question": "Is this free?",
+    "answer": "Yes, UniPath is completely free to use for students."
+  }
+]

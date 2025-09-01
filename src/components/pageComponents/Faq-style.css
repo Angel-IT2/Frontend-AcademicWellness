@@ -1,0 +1,152 @@
+:root{
+    --primaryColor: blue;
+    --softColor: hsl(0, 94%, 93%);
+    --whiteColor: #f5f5f5;
+    --blackColor: #222;
+
+}
+
+.headerf
+{
+    
+    background-position: top center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-height: 380px;
+    padding: 40px;
+    border-radius: 15px;
+    border: transparent;
+    border: 1px solid white; /* white border surrounding content */
+    max-width: 100%;
+    
+}
+
+.headerf-title{
+    font-size: 48px;
+    letter-spacing: 1.5;
+}
+
+.headerf-desc{
+    font-size: 14px;
+    letter-spacing: 1;
+    text-align: center;
+}
+
+.search{
+    width: 40%;
+    height: 60px;
+    background-color: var(--whiteColor);
+    margin-top: 2%;
+    border-radius: 30px;
+    display: flex;
+    padding: 5px;
+}
+
+.search input{
+    width: 100%;
+    height: 100%;
+    padding: 1% 3%;
+    background: transparent;
+    border: none;
+}
+
+.search button{
+    width: 30%;
+    min-width: 100px;
+    height: 100%;
+    background-color: #1a75ff;;
+    color: var(--whiteColor);
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+
+}
+
+.search button:hover{
+    background-color: skyblue;
+}
+
+.search input:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 0, 255, 0.3); /* soft blue glow */
+    border-radius: 30px;
+}
+
+.faq{
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    
+}
+
+.faq-name{
+    flex: 0.2;
+    padding: 2% 2% 0 0;
+
+}
+.faq-header{
+    padding:2% 0 0 0;
+}
+
+.faq-box{
+    flex: 0.5;
+    min-width: 320px;
+    padding: 2% 0 4% 4%;
+    
+
+}
+
+.faq-wrapper{
+    width: 100%;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(34, 34, 34, 0.3);
+    
+
+}
+
+.faq-title{
+    display: block;
+    position: relative;
+    width: 100%;
+    letter-spacing: 1.2;
+    font-size: 24px;
+}
+
+/* creating arrow */
+.faq-title::after{
+    width: 10px;
+    height: 10px;
+    content: "";
+    float: right;
+    border-style: solid;
+    border-width: 2px 2px 0 0;
+    transform: rotate(135deg);
+    transition: 0.4s ease-in-out;
+}
+
+.faq-detail{
+   line-height: 1.5;
+   letter-spacing: 1;
+   max-height: 0;
+   overflow: hidden;
+   transition: 0.3s ease-in-out;
+   font-size: 14px;
+}
+
+.faq-trigger{
+    display: none; 
+}
+
+.faq-trigger:checked + .faq-title + .faq-detail{
+    max-height: 300px;
+}
+
+.faq-trigger:checked + .faq-title::after{
+    transform: rotate(-45deg);
+    transition: 0.4s ease-in-out;
+
+}
