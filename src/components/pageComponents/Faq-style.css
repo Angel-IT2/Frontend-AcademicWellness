@@ -151,3 +151,77 @@
     transition: 0.4s ease-in-out;
 
 }
+
+.feedback-popup {
+  background-color: #007BFF;
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 30px auto;
+  width: 60%;
+  text-align: center;
+}
+
+.feedback-options {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.feedback-options button {
+  background-color: white;
+  color: #007BFF;
+  border: 2px solid white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.feedback-options button:hover {
+  background-color: #0056b3;
+  color: white;
+}
+
+.feedback-options button.active {
+  background-color: white;
+  color: #0056b3;
+  font-weight: bold;
+}
+
+.contact-form {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contact-form input,
+.contact-form textarea {
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  width: 100%;
+}
+
+.contact-form button {
+  background-color: white;
+  color: #007BFF;
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.contact-form button:hover {
+  background-color: #0056b3;
+  color: white;
+}
+
+.thank-you-msg {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 10px;
+}

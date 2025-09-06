@@ -1,13 +1,33 @@
 import React, { useState } from "react";
-import faqs from "./faqs"; 
+import faqs from "./faqs";
 import "./Faq-style.css";
 
 function FAQ() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [feedback, setFeedback] = useState(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: ""
+  });
 
   const filteredFaqs = faqs.filter(faq =>
     faq.question.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    // Handle form submission here (e.g., send to API or email service)
+    setFormData({ name: "", email: "", message: "" });
+    setFeedback("submitted");
+  };
+
+  const handleYesClick= () =>{ setFeedback("thankyou")}
 
   return (
     <div>
@@ -49,6 +69,66 @@ function FAQ() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Feedback Section */}
+      <div className="feedback-popup">
+        {feedback !== "submitted" && feedback !=="thankyou" && (
+          <>
+            <p>Did you find what you were looking for?</p>
+            <div className="feedback-options">
+              <button 
+                onClick={handleYesClick}
+              >
+                Yes
+              </button>
+              <button 
+                onClick={() => setFeedback("no")} 
+                
+              >
+                No
+              </button>
+            </div>
+          </>
+        )}
+
+         {feedback === "thankyou" && (<p className="thank-you-msg">Thank you for your feedback! </p>
+         )}
+        
+
+        {feedback === "no" && (
+          <form className="contact-form" onSubmit={handleFormSubmit}>
+            <h3>Contact Us</h3>
+            <input
+              type="text"
+              name="name"
+              placeholder="Your Name"
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder="Your Email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+            />
+            <textarea
+              name="message"
+              placeholder="Your Message"
+              value={formData.message}
+              onChange={handleInputChange}
+              required
+            />
+            <button type="submit">Send Message</button>
+          </form>
+        )}
+
+        {feedback === "submitted" && (
+          <p className="thank-you-msg">Thank you for your feedback! We'll get back to you soon.</p>
+        )}
       </div>
     </div>
   );
