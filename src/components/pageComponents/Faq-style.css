@@ -115,6 +115,7 @@
     width: 100%;
     letter-spacing: 1.2;
     font-size: 24px;
+    cursor: pointer;
 }
 
 /* creating arrow */
@@ -135,7 +136,8 @@
    max-height: 0;
    overflow: hidden;
    transition: 0.3s ease-in-out;
-   font-size: 15px;
+   font-size: 17px;
+   margin-top: 10px;
 }
 
 .faq-trigger{

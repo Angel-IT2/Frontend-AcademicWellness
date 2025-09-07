@@ -63,6 +63,7 @@ function FAQ() {
               <label className="faq-title" htmlFor={`faq-${faq.id}`}>
                 {faq.question}
               </label>
+              
               <div className="faq-detail">
                 <p>{faq.answer}</p>
               </div>
