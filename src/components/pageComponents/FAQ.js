@@ -34,7 +34,7 @@ function FAQ() {
       {/* Header Section */}
       <div className="headerf">
         <h1 className="headerf-title">FAQs</h1>
-        <p className="headerf-desc">Got a question? Below are some of the mostly asked questions.</p>
+        <p className="headerf-desc">Got a question? Below are some of the most frequently asked questions.</p>
         <div className="search">
           <input
             type="text"
