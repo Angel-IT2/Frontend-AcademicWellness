@@ -2,16 +2,59 @@
   {
     "id": 1,
     "question": "What is UniPath?",
-    "answer": "UniPath is a platform that helps students explore universities and programs."
+    "answer": " UniPath is a student community and support platform that helps first-years settle into university life. It connects you with classmates and seniors, offers course-specific groups and resources, and provides tools for developing study skills, managing time effectively, and navigating campus life."
   },
+
   {
     "id": 2,
-    "question": "How do I register?",
-    "answer": "Click on the register button on the top right and fill out the form."
+    "question": "Is this free?",
+    "answer": "Yes, UniPath is completely free to use for all registered students."
   },
   {
     "id": 3,
-    "question": "Is this free?",
-    "answer": "Yes, UniPath is completely free to use for students."
+    "question": "How do I register?",
+    "answer": "Click on the register button on the top right and fill out the form."
+  },
+  
+  {
+    "id": 4,
+    "question": "Is UniPath only for first-years or can seniors also join?",
+    "answer": "Seniors are welcome and encouraged. First-years use UniPath for support and community; seniors join to mentor, share advice, and lead groups."
+  },
+
+  {
+    "id": 5,
+    "question": "How do I know which chatrooms or groups to join?",
+    "answer": "During onboarding, we recommend groups based on your faculty, major, and course codes."
+  },
+
+  {
+    "id": 6,
+    "question": "How can this help me with my studies?",
+    "answer": "Join course groups to discuss lectures, form study circles, and find selected resources like summaries, practice questions, and study guides. You can ask questions, get feedback, and stay on top of deadlines."
+  },
+
+  {
+    "id": 7,
+    "question": "Can I get tips on time management and study planning?",
+    "answer": "Absolutely. UniPath offers planning templates, study schedules, productivity tips, and reminder tools, plus peer advice on balancing workload, exams, and life."
+  },
+
+  {
+    "id": 8,
+    "question": "Are there resources for specific courses or faculties?",
+    "answer": "Yes. Communities are organized by faculty and course code with shared notes, concept explainers, past-paper practice tips, and assignment guidance (no answer sharing)."
+  },
+
+  {
+    "id": 9,
+    "question": "Can I ask seniors for advice on difficult modules?",
+    "answer": "Definitely. Post in your course or faculty groups to get insights from seniors who have completed the module—on concepts, exam prep, and what to expect."
+  },
+
+  {
+    "id": 10,
+    "question": "Is my data private and how does UniPath keep me safe?",
+    "answer": "Your information is indeed kept confidential. UniPath keeps your personal information secure by adhering to data protection rules and using secure encryption. We never share your details with unauthorized parties. Furthermore, the site is monitored to avoid spam, harassment, and improper content, allowing you to interact in a secure and friendly environment."
   }
 ]
