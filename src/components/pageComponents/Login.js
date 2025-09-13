@@ -1,25 +1,61 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaGoogle, FaMicrosoft, FaApple, FaPhone } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import "./Auth.css";
 import bgImage from "./academics.jpg";
 
 function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+
+    if (!storedUser) {
+      setError("No user found. Please register first.");
+      return;
+    }
+
+    if (storedUser.email === email && storedUser.password === password) {
+      setError("");
+      alert("Login successful!");
+      navigate("/dashboard"); // ✅ Redirect directly to Dashboard
+    } else {
+      setError("Invalid email or password.");
+    }
+  };
+
   return (
     <div className="form-box" style={{ backgroundImage: `url(${bgImage})` }}>
       <Navbar />
-
-      <form className="auth-form">
+      <form className="auth-form" onSubmit={handleLogin}>
         <h2>Login to UniPath</h2>
 
-        <input type="email" placeholder="Email" required />
-        <input type="password" placeholder="Password" required />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        {error && <div className="error-msg">{error}</div>}
 
         <button className="auth-btn">Login</button>
 
         <p className="auth-or">Or continue with</p>
-
         <div className="auth-social">
           <button className="social-btn google"><FaGoogle /> Google</button>
           <button className="social-btn microsoft"><FaMicrosoft /> Microsoft</button>
