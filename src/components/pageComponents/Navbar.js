@@ -14,7 +14,7 @@ function Navbar() {
       <div className="nav-menu">
         <ul>
           <li><button className="link" onClick={() => navigate("/")}>Home</button></li>
-          <li><button className="link" onClick={() => navigate("/WhatsTheDifference")}>WhatsTheDifference</button></li>
+          <li><button className="link" onClick={() => navigate("/about")}>About</button></li>
           <li><button className="link" onClick={() => navigate("/faqs")}>FAQs</button></li>
         </ul>
       </div>
