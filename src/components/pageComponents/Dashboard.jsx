@@ -13,11 +13,11 @@ const Dashboard = () => {
   }, [storedUser, navigate]);
 
   const journeySteps = [
-    { step: "1. Activate Account ", link: null },
-    { step: "2. Complete Profile", link: "/profile" },
-    { step: "3. Know The Difference ", link: "/whats-the-difference" },
-    { step: "4. Setup Your Weekly Plan ", link: "/two-week-planner" },
-    { step: "5. Setup a Monthly Plan", link: "/monthly-planner" },
+    { step: "1. Activate Account", link: null },
+    { step: "2. Complete Profile", link: "/dashboard/profile" },
+    { step: "3. Know The Difference", link: "/dashboard/whats-the-difference" },
+    { step: "4. Setup Your Weekly Plan", link: "/dashboard/two-week-planner" },
+    { step: "5. Setup a Monthly Plan", link: "/dashboard/monthly-planner" },
   ];
 
   return (

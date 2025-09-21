@@ -1,188 +1,233 @@
-body{
-      margin:0;
-      font-family:Verdana,Arial,sans-serif;
-      background:#f9fafc;
-      color:#222;
-    }
-.container{max-width:900px;margin:20px auto;padding:0 16px}
-
-    h4{font-size:26px;margin:0 0 20px;color:#0b2f4f;text-align:center}
-
-    /* Toggle button */
-    #toggleFormBtn {
-      
-      background:#0d6efd;
-      color:white;
-      border:none;
-      padding:10px 16px;
-      border-radius:4px;
-      font-size:14px;
-      font-weight:600;
-      cursor:pointer;
-      transition:background .2s;
-      display:block;
-      margin:0 auto 20px auto;
-    }
-    #toggleFormBtn:hover{background:#0b5ed7}
-
-    /* Post card */
-    .post{
-      border:1px solid #e2e2e2;
-      border-radius:8px;
-      background:#fff;
-      margin-bottom:20px;
-      overflow:hidden;
-      box-shadow:0 2px 4px rgba(0,0,0,0.05);
-      transition:transform 0.1s;
-    }
-    .post:hover{transform:translateY(-1px)}
-
-    .post-header{
-      background:#ece9ff;
-      padding:10px 14px;
-      font-size:14px;
-      font-weight:600;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      color:#222;
-    }
-    .post-body{padding:16px}
-    .user{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-size:14px;
-      margin-bottom:10px;
-    }
-    .avatar{
-      width:36px;
-      height:36px;
-      border-radius:50%;
-      background: darkblue;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:#fff;
-      font-weight:bold;
-    }
-    .user-info small{color:#666;font-size:12px}
-    .tag{
-      display:inline-block;
-      font-size:11px;
-      background:#d1f7d6;
-      color:#155724;
-      padding:2px 6px;
-      border-radius:4px;
-      margin-left:6px;
-      font-weight:600;
-    }
-    .body-text{margin:10px 0;font-size:14px;line-height:1.5;color:#333}
-
-    /* Actions */
-    .actions{
-      display:flex;
-      align-items:center;
-      gap:16px;
-      font-size:14px;
-      margin-top:12px;
-    }
-    .actions button{
-      background:none;
-      border:none;
-      cursor:pointer;
-      font-size:14px;
-      display:flex;
-      align-items:center;
-      gap:6px;
-      transition:color 0.2s;
-    }
-    .actions button:hover{text-decoration: underline; text-decoration-thickness: 2px;}
-
-    .helpful{color:black;font-weight:600}
-
-    .reply-btn {
-      margin-left: auto;
-      background: lightblue !important; 
-      color: black;
-      border-radius: 4px;
-      padding: 6px 14px;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .reply-btn:hover{background: #1a75ff !important;color:#fff; text-decoration:none !important;}
-
-    /* Quick reply box */
-    .quick-reply{
-      border-radius:6px;
-      background:#ece9ff;
-      padding:18px;
-      margin-top:25px;
-    }
-    .quick-reply textarea{
-      width:100%;
-      min-height:100px;
-      border:1px solid #ccc;
-      border-radius:4px;
-      padding:10px;
-      font-size:14px;
-      resize:vertical;
-    }
-    .quick-reply .submit-row {
-      display:flex;
-      justify-content:flex-end;
-      margin-top:12px;
-    }
-    .quick-reply .submit-row button {
-      background: lightblue;
-      color: black;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      font-weight:600;
-      cursor:pointer;
-    }
-    .quick-reply .submit-row button:hover {background:#1a75ff;color:#fff;}
-
-    /* New Post Form (hidden default) */
-    .new-post{
-      background-color: #007BFF;
-      border-radius:10px;
-      padding:16px;
-      margin-bottom:20px;
-      
-    }
-    .new-post h2{font-size:18px;margin-bottom:10px;color: white;}
-    .new-post input,.new-post textarea{
-      width:98%;
-      padding:8px;
-      margin:6px 0;
-      border:1px solid #ccc;
-      border-radius:4px;
-      font-size:14px;
-      resize:vertical;
-    }
-    .new-post button{
-      margin-left: 86%;
-      color: #1a75ff;
-  background-color: white !important;
-      border: 1px solid white;
-      padding:10px 18px;
-      border-radius:4px;
-      font-weight:600;
-      cursor:pointer;
-      margin-top:6px;
-      transition: all 0.4s;
-    }
-    .new-post button:hover {
-  background-color:#1a75ff;
-  transform: scale(1.01);
-  
+body {
+  margin: 0;
+  font-family: Verdana, Arial, sans-serif;
+  background: #f9fafc;
+  color: #222;
 }
 
-/* Replies list */
+.container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 0 16px;
+}
+
+h4 {
+  font-size: 26px;
+  margin: 0 0 20px;
+  color: #0b2f4f;
+  text-align: center;
+}
+
+#toggleFormBtn {
+  background: #0d6efd;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: block;
+  margin: 0 auto 20px auto;
+}
+#toggleFormBtn:hover {
+  background: #0b5ed7;
+}
+
+.post {
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+  background: #fff;
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.1s;
+}
+.post:hover {
+  transform: translateY(-1px);
+}
+
+.post-header {
+  background: #ece9ff;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #222;
+}
+
+.post-body {
+  padding: 16px;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: darkblue;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: bold;
+}
+
+.user-info small {
+  color: #666;
+  font-size: 12px;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  background: #d1f7d6;
+  color: #155724;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  font-weight: 600;
+}
+
+.body-text {
+  margin: 10px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+.actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+
+.actions button:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+.reply-btn {
+  margin-left: auto;
+  background: lightblue !important;
+  color: black;
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.reply-btn:hover {
+  background: #1a75ff !important;
+  color: #fff;
+  text-decoration: none !important;
+}
+
+.quick-reply {
+  border-radius: 6px;
+  background: #ece9ff;
+  padding: 18px;
+  margin-top: 25px;
+}
+
+.quick-reply textarea {
+  width: 100%;
+  min-height: 100px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.quick-reply .submit-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.quick-reply .submit-row button {
+  background: lightblue;
+  color: black;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quick-reply .submit-row button:hover {
+  background: #1a75ff;
+  color: #fff;
+}
+
+.new-post {
+  background-color: #007BFF;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.new-post h2 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: white;
+}
+
+.new-post input,
+.new-post textarea {
+  width: 98%;
+  padding: 8px;
+  margin: 6px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.new-post button {
+  margin-left: 86%;
+  color: #1a75ff;
+  background-color: white !important;
+  border: 1px solid white;
+  padding: 10px 18px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: all 0.4s;
+}
+
+.new-post button:hover {
+  background-color: #1a75ff;
+  transform: scale(1.01);
+}
+
 .replies {
   margin-top: 15px;
   padding-left: 12px;
@@ -199,7 +244,6 @@ body{
   color: #333;
 }
 
-/* Pending approval section */
 .pending-section {
   background: #fff3cd;
   border: 1px solid #ffeeba;

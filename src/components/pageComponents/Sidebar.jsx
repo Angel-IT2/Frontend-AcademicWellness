@@ -6,6 +6,7 @@ import {
   FaCalendarCheck,
   FaComments,
   FaSignOutAlt,
+  FaGraduationCap,
 } from "react-icons/fa";
 import "./DashboardLayout.css";
 
@@ -14,10 +15,11 @@ const Sidebar = () => {
   const location = useLocation();
 
   const menuItems = [
-    { label: " Home", path: "/dashboard", icon: <FaHome /> },
-    { label: " Two-Week Planner", path: "/two-week-planner", icon: <FaCalendarCheck /> },
-    { label: " Monthly Planner", path: "/monthly-planner", icon: <FaCalendarAlt /> },
-    { label: " Academic Chatboxes", path: "/academic-chatboxes", icon: <FaComments /> },
+    { label: "Home", path: "/dashboard", icon: <FaHome /> },
+    { label: "WhatsTheDifference", path: "/dashboard/whats-the-difference", icon: <FaGraduationCap /> },
+    { label: "Two-Week Planner", path: "/dashboard/two-week-planner", icon: <FaCalendarCheck /> },
+    { label: "Monthly Planner", path: "/dashboard/monthly-planner", icon: <FaCalendarAlt /> },
+    { label: "Academic Chatboxes", path: "/dashboard/academic-chatboxes", icon: <FaComments /> },
   ];
 
   const handleLogout = () => {
@@ -32,9 +34,7 @@ const Sidebar = () => {
         {menuItems.map((item, index) => (
           <li
             key={index}
-            className={`sidebar-item ${
-              location.pathname === item.path ? "active" : ""
-            }`}
+            className={`sidebar-item ${location.pathname === item.path ? "active" : ""}`}
             onClick={() => navigate(item.path)}
           >
             <span className="icon">{item.icon}</span>

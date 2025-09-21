@@ -1,6 +1,6 @@
 import React from "react";
+import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import Dashboard from "./Dashboard";
 import "./DashboardLayout.css";
 
 const DashboardLayout = () => {
@@ -8,7 +8,7 @@ const DashboardLayout = () => {
     <div className="dashboard-layout">
       <Sidebar />
       <main className="dashboard-content">
-        <Dashboard />
+        <Outlet />
       </main>
     </div>
   );
