@@ -1,11 +1,13 @@
-import React from "react";
-import { Link, useLocation} from "react-router-dom";
+import React from "react"; 
+import { Link, useLocation } from "react-router-dom";
 import "./header.css";
 
 const Header = () => {
   const location = useLocation();
-  const hideButtonsOn = ["/dashboard"];
-  const hideButtons = hideButtonsOn.includes(location.pathname);
+
+  // Hide header buttons if path starts with "/dashboard"
+  const hideButtons = location.pathname.startsWith("/dashboard");
+
   return (
     <header className="header">
       <h1 className="logo">UniPath</h1>
@@ -13,16 +15,16 @@ const Header = () => {
         <ul className="nav-links">
           {!hideButtons && (
             <>
-          <li>
-            <Link to="/" className="nav-link">Home</Link>
-          </li>
-          <li>
-            <Link to="/login" className="nav-link">Login</Link>
-          </li>
-          <li>
-            <Link to="/register" className="nav-link">Register</Link>
-          </li>
-          </>
+              <li>
+                <Link to="/" className="nav-link">Home</Link>
+              </li>
+              <li>
+                <Link to="/login" className="nav-link">Login</Link>
+              </li>
+              <li>
+                <Link to="/register" className="nav-link">Register</Link>
+              </li>
+            </>
           )}
         </ul>
       </nav>
