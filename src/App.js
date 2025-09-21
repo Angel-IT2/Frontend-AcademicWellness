@@ -11,10 +11,13 @@ import Home from "./components/pageComponents/Home";
 import Login from "./components/pageComponents/Login";
 import Register from "./components/pageComponents/Register";
 import FAQ from "./components/pageComponents/FAQ";
+import DashboardLayout from "./components/pageComponents/DashboardLayout";
+import Dashboard from "./components/pageComponents/Dashboard";
+import Profile from "./components/pageComponents/Profile";
+import WhatsTheDifference from "./components/pageComponents/WhatsTheDifference";
 import TwoWeekPlanner from "./components/pageComponents/TwoWeekPlanner";
 import MonthlyPlanner from "./components/pageComponents/MonthlyPlanner";
 import AcademicChatboxes from "./components/pageComponents/AcademicChatboxes";
-import DashboardLayout from "./components/pageComponents/DashboardLayout";
 
 function App() {
   return (
@@ -27,10 +30,16 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/faqs" element={<FAQ />} />
-            <Route path="/dashboard" element={<DashboardLayout />} />
-            <Route path="/two-week-planner" element={<TwoWeekPlanner />} />
-            <Route path="/monthly-planner" element={<MonthlyPlanner />} />
-            <Route path="/academic-chatboxes" element={<AcademicChatboxes />} />
+
+            {/* Dashboard Layout with nested routes */}
+            <Route path="/dashboard" element={<DashboardLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="whats-the-difference" element={<WhatsTheDifference />} />
+              <Route path="two-week-planner" element={<TwoWeekPlanner />} />
+              <Route path="monthly-planner" element={<MonthlyPlanner />} />
+              <Route path="academic-chatboxes" element={<AcademicChatboxes />} />
+            </Route>
           </Routes>
         </div>
         <Footer />
