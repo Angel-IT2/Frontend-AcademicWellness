@@ -1,9 +1,16 @@
 import React from "react";
+import "./MonthlyPlanner.css";
 
 const MonthlyPlanner = () => (
-  <div>
-    <h1>Monthly Academic Planner</h1>
-    <p>This is where your monthly planner with automated reminders will go.</p>
+  <div className="monthly-page">
+    <h1 className="monthly-title">Monthly Academic Planner</h1>
+    <p className="monthly-description">
+      This is where your monthly planner with automated reminders will go.
+    </p>
+
+    <div className="calendar-box">
+      <p>📅 Calendar view coming soon…</p>
+    </div>
   </div>
 );
 

@@ -22,7 +22,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
-      <h1>Student Journey</h1>
+      <h1>User Journey</h1>
       <div className="journey-container">
         {journeySteps.map((item, index) => (
           <div
