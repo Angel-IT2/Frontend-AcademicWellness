@@ -118,7 +118,7 @@ const WhatsTheDifference = () => {
 
   return (
     <div className="container">
-      <h4>WhatsTheDifference</h4>
+      <h4>WhatsTheDifference - Real Insights from your seniors: High school vs University</h4>
 
       {/* Toggle form */}
       <button id="toggleFormBtn" onClick={() => setShowForm(!showForm)}>
