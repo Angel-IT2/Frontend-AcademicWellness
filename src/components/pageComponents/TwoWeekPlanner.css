@@ -288,13 +288,11 @@ h1 {
 .next-month { opacity: 0.7; }
 
 .next-month-indicator {
+  display: block;          
+  text-align: bottom;      
   font-size: 10px;
   color: #007bff;
-  padding: 2px 4px;
-  border-radius: 6px;
-  position: absolute;
-  top: 2px;
-  right: 4px;
+  margin-top: 2px;         /* spacing below the day number */
   pointer-events: none;
 }
 
