@@ -138,21 +138,19 @@ const MonthlyPlanner = () => {
           <div className="calendar-grid">
             {daysArray.map((day, idx) => {
               const dateStr = day ? day.toISOString().split("T")[0] : `blank-${idx}`;
-              const dayTasks = day
-                ? tasks.filter((t) => t.date === dateStr)
-                : [];
+              const dayTasks = day ? tasks.filter((t) => t.date === dateStr) : [];
               const active = selectedDate === dateStr;
-
+              
+              const weekend =day && (day.getDay() === 0 || day.getDay() === 6) ? "weekend" : "";
+              
               return (
-                <div
-                  key={dateStr}
-                  className={`calendar-day ${active ? "active" : ""}`}
-                  onClick={() => handleDateClick(day)}
-                >
-                  <div className="cell-date">{day ? day.getDate() : ""}</div>
-
-                  <ul className="task-list">
-                    {dayTasks.map((ev) => (
+              <div
+              key={dateStr}
+              className={`calendar-day ${active ? "active" : ""} ${weekend}`} onClick={() => handleDateClick(day)}>
+                <div className="cell-date">{day ? day.getDate() : ""}</div>
+                
+                <ul className="task-list">
+                  {dayTasks.map((ev) => (
                       <TaskItem
                         key={ev.id}
                         task={ev}

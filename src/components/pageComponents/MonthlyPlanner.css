@@ -86,7 +86,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 36px;
   margin-bottom: 1rem;
 }
 
@@ -101,6 +102,13 @@
 }
 .calendar-nav button:hover {
   background: #c7d2fe;
+}
+
+.calendar-day.weekend {
+  background: #D8BFD8;
+}
+.calendar-day.weekend:hover{
+  background: #b390b3;
 }
 
 .weekday-labels {
@@ -321,4 +329,14 @@
     -webkit-print-color-adjust: exact; /* Safari/Chrome */
     print-color-adjust: exact;         /* Modern spec */
   }
+
+  /* background colors for weekends and tasks to print correctly */
+  .calendar-day.weekend,
+  .task-item,
+  .priority-badge,
+  .legend-color {
+    -webkit-print-color-adjust: exact; /* For Chrome, Safari, Edge */
+    print-color-adjust: exact;         
+  }
+  
 }
