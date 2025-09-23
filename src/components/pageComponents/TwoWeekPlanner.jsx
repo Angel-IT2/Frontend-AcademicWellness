@@ -13,17 +13,23 @@ const TwoWeekPlanner = () => {
     description: "",
   });
 
-  const formRef = useRef();
-  const startDate = new Date();
-  const startMonth = startDate.getMonth();
+   const formRef = useRef();
+  const today = new Date();
+  
+  // Calculate the first day (Sunday) of the current week
+  const firstDayOfWeek = new Date(today);
+  firstDayOfWeek.setDate(today.getDate() - today.getDay());
 
+  const startMonth = today.getMonth(); // It's better to base the month on today's actual date
+
+  // Generate the 14 days starting from the calculated Sunday
   const daysArray = [...Array(14)].map((_, i) => {
-    const d = new Date(startDate);
-    d.setDate(startDate.getDate() + i);
+    const d = new Date(firstDayOfWeek);
+    d.setDate(firstDayOfWeek.getDate() + i);
     return d;
   });
 
-  const monthName = startDate.toLocaleString(undefined, { month: "long" }).toUpperCase();
+  const monthName = firstDayOfWeek.toLocaleString(undefined, { month: "long" }).toUpperCase();
 
   const handleDateClick = (dateStr) => {
     if (activeDate !== dateStr) {

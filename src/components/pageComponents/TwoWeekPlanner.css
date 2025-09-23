@@ -89,9 +89,12 @@ h1 {
   border: 2px solid #007bff;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
 }
+.calendar-day.weekend {
+  background: #c8a2c8; /* different color to show the weekend*/
+}
 
-.weekday { background: #fefefe; }   /* keep original background */
-.weekend { background: #D8BFD8; }   /* keep original weekend background */
+.weekday { background: #fefefe; }   
+ 
 
 /* Date inside cell */
 .cell-date {
