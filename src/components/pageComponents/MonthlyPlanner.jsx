@@ -1,59 +1,51 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./MonthlyPlanner.css";
 
-const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const THEME_COLORS = ["#6366f1", "#4a90e2", "#e57373", "#81c784", "#ffb74d"];
 
 const MonthlyPlanner = () => {
-  // state
+  // Calendar state
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [editingTaskId, setEditingTaskId] = useState(null);
-  const [formData, setFormData] = useState({
-    text: "",
-    priority: "medium",
-    description: "",
-    time: ""
-  });
+  const [formData, setFormData] = useState({ text: "", priority: "medium", description: "", time: "" });
+
+  // Settings state
+  const [showSettings, setShowSettings] = useState(false);
+  const [themeColor, setThemeColor] = useState(THEME_COLORS[0]);
+  const [startWeekMonday, setStartWeekMonday] = useState(false);
+  const [highlightWeekends, setHighlightWeekends] = useState(true);
 
   const formRef = useRef();
 
-  // month details
-  const monthName = currentDate.toLocaleString(undefined, {
-    month: "long",
-    year: "numeric"
-  });
+  // Calendar info
+  const monthName = currentDate.toLocaleString(undefined, { month: "long", year: "numeric" });
 
-  // calc days for current month grid
+  // apply settings: start week on Sunday or Monday
+  const weekdays = startWeekMonday
+    ? [...WEEKDAYS.slice(1), WEEKDAYS[0]]
+    : WEEKDAYS;
+
   const daysInMonth = new Date(
     currentDate.getFullYear(),
     currentDate.getMonth() + 1,
     0
   ).getDate();
-  const firstDayOfWeek = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth(),
-    1
-  ).getDay();
+
+  // adjust first day based on settings
+  let firstDayOfWeek = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
+  if (startWeekMonday) firstDayOfWeek = (firstDayOfWeek + 6) % 7;
+
   const daysArray = [
-    ...Array(firstDayOfWeek).fill(null), // blank start
-    ...Array(daysInMonth)
-      .fill(0)
-      .map((_, i) => new Date(currentDate.getFullYear(), currentDate.getMonth(), i + 1))
+    ...Array(firstDayOfWeek).fill(null),
+    ...Array(daysInMonth).fill(0).map((_, i) => new Date(currentDate.getFullYear(), currentDate.getMonth(), i + 1)),
   ];
 
   // handlers
-  const prevMonth = () => {
-    const d = new Date(currentDate);
-    d.setMonth(d.getMonth() - 1);
-    setCurrentDate(d);
-  };
-
-  const nextMonth = () => {
-    const d = new Date(currentDate);
-    d.setMonth(d.getMonth() + 1);
-    setCurrentDate(d);
-  };
+  const prevMonth = () => { const d = new Date(currentDate); d.setMonth(d.getMonth() - 1); setCurrentDate(d); };
+  const nextMonth = () => { const d = new Date(currentDate); d.setMonth(d.getMonth() + 1); setCurrentDate(d); };
 
   const handleDateClick = (day) => {
     if (!day) return;
@@ -65,6 +57,7 @@ const MonthlyPlanner = () => {
     setSelectedDate(dateStr);
   };
 
+  // save task
   const saveTask = () => {
     if (!formData.text || !selectedDate) return;
     if (editingTaskId) {
@@ -72,57 +65,72 @@ const MonthlyPlanner = () => {
         prev.map((t) => (t.id === editingTaskId ? { ...t, ...formData } : t))
       );
     } else {
-      setTasks((prev) => [
-        ...prev,
-        { id: Date.now(), date: selectedDate, ...formData }
-      ]);
+      setTasks((prev) => [...prev, { id: Date.now(), date: selectedDate, ...formData }]);
     }
-    // reset
     setFormData({ text: "", priority: "medium", description: "", time: "" });
     setSelectedDate(null);
     setEditingTaskId(null);
   };
 
-  const deleteTask = (id) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
-  };
+  const deleteTask = (id) => setTasks((prev) => prev.filter((t) => t.id !== id));
+  const startEditingTask = (task) => { setEditingTaskId(task.id); setFormData(task); setSelectedDate(task.date); };
 
-  const startEditingTask = (task) => {
-    setEditingTaskId(task.id);
-    setFormData({
-      text: task.text,
-      priority: task.priority,
-      description: task.description,
-      time: task.time || ""
-    });
-    setSelectedDate(task.date);
-  };
-
-  // close popup if click outside
+  // Hide edit popup if clicked outside
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    const handleClick = (e) => {
       if (formRef.current && !formRef.current.contains(e.target)) {
-        setSelectedDate(null);
-        setEditingTaskId(null);
+        setSelectedDate(null); setEditingTaskId(null);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
   return (
-    <div className="planner-page">
+    <div className="planner-page" style={{ "--theme-color": themeColor }}>
       {/* HEADER */}
       <header className="planner-header">
         <h1>Monthly Planner</h1>
         <div className="header-actions">
           <button onClick={() => window.print()}>🖨 Print</button>
-          <button>⚙ Settings</button>
+          <button onClick={() => setShowSettings(!showSettings)}>⚙ Settings</button>
         </div>
       </header>
 
+      {/* SETTINGS PANEL */}
+      {showSettings && (
+        <div className="settings-panel">
+          <h2>Settings</h2>
+          <div className="setting-item">
+            <label>Theme Color:</label>
+            <div className="color-options">
+              {THEME_COLORS.map((c) => (
+                <div
+                  key={c}
+                  className="color-swatch"
+                  style={{ background: c, border: themeColor === c ? "3px solid black" : "1px solid #ccc" }}
+                  onClick={() => setThemeColor(c)}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="setting-item">
+            <label>
+              <input type="checkbox" checked={startWeekMonday} onChange={(e) => setStartWeekMonday(e.target.checked)} />
+              Start week on Monday
+            </label>
+          </div>
+          <div className="setting-item">
+            <label>
+              <input type="checkbox" checked={highlightWeekends} onChange={(e) => setHighlightWeekends(e.target.checked)} />
+              Highlight weekends
+            </label>
+          </div>
+        </div>
+      )}
+
+      {/* CALENDAR */}
       <main className="calendar-container">
-        {/* CALENDAR */}
         <div className="calendar-frame">
           <div className="calendar-nav">
             <button onClick={prevMonth}>←</button>
@@ -134,74 +142,38 @@ const MonthlyPlanner = () => {
               <div key={day} className="weekday-label">{day}</div>
             ))}
           </div>
-
           <div className="calendar-grid">
             {daysArray.map((day, idx) => {
               const dateStr = day ? day.toISOString().split("T")[0] : `blank-${idx}`;
               const dayTasks = day ? tasks.filter((t) => t.date === dateStr) : [];
               const active = selectedDate === dateStr;
-              
-              const weekend =day && (day.getDay() === 0 || day.getDay() === 6) ? "weekend" : "";
-              
+              const weekend = highlightWeekends && day && (day.getDay() === 0 || day.getDay() === 6) ? "weekend" : "";
               return (
-              <div
-              key={dateStr}
-              className={`calendar-day ${active ? "active" : ""} ${weekend}`} onClick={() => handleDateClick(day)}>
-                <div className="cell-date">{day ? day.getDate() : ""}</div>
-                
-                <ul className="task-list">
-                  {dayTasks.map((ev) => (
-                      <TaskItem
-                        key={ev.id}
-                        task={ev}
-                        deleteTask={deleteTask}
-                        startEditingTask={startEditingTask}
-                        editingTaskId={editingTaskId}
-                        formData={formData}
-                        setFormData={setFormData}
-                        saveTask={saveTask}
-                      />
+                <div key={dateStr}
+                  className={`calendar-day ${active ? "active" : ""} ${weekend}`}
+                  onClick={() => handleDateClick(day)}>
+                  <div className="cell-date">{day ? day.getDate() : ""}</div>
+                  <ul className="task-list">
+                    {dayTasks.map((ev) => (
+                      <TaskItem key={ev.id} task={ev} deleteTask={deleteTask}
+                        startEditingTask={startEditingTask} editingTaskId={editingTaskId}
+                        formData={formData} setFormData={setFormData} saveTask={saveTask} />
                     ))}
                   </ul>
-
-                  {/* inline popup for add/edit */}
                   {active && !editingTaskId && (
-                    <div
-                      className="task-form-popup"
-                      ref={formRef}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <input
-                        placeholder="Task name"
-                        value={formData.text}
-                        onChange={(e) =>
-                          setFormData({ ...formData, text: e.target.value })
-                        }
-                      />
-                      <select
-                        value={formData.priority}
-                        onChange={(e) =>
-                          setFormData({ ...formData, priority: e.target.value })
-                        }
-                      >
+                    <div className="task-form-popup" ref={formRef} onClick={(e) => e.stopPropagation()}>
+                      <input value={formData.text} placeholder="Task name"
+                        onChange={(e) => setFormData({ ...formData, text: e.target.value })} />
+                      <select value={formData.priority}
+                        onChange={(e) => setFormData({ ...formData, priority: e.target.value })}>
                         <option value="high">High</option>
                         <option value="medium">Medium</option>
                         <option value="low">Low</option>
                       </select>
-                      <input
-                        type="time"
-                        value={formData.time}
-                        onChange={(e) =>
-                          setFormData({ ...formData, time: e.target.value })
-                        }
-                      />
-                      <textarea
-                        placeholder="Description"
-                        value={formData.description}
-                        onChange={(e) =>
-                          setFormData({ ...formData, description: e.target.value })
-                        }
-                      />
+                      <input type="time" value={formData.time}
+                        onChange={(e) => setFormData({ ...formData, time: e.target.value })} />
+                      <textarea value={formData.description} placeholder="Description"
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
                       <button onClick={saveTask}>Save</button>
                     </div>
                   )}
@@ -210,50 +182,25 @@ const MonthlyPlanner = () => {
             })}
           </div>
         </div>
-
-        {/* LEGEND */}
-        <div className="calendar-legend">
-          <div className="legend-item"><span className="legend-color high"></span> High Priority</div>
-          <div className="legend-item"><span className="legend-color medium"></span> Medium Priority</div>
-          <div className="legend-item"><span className="legend-color low"></span> Low Priority</div>
-        </div>
       </main>
     </div>
   );
 };
 
-// TaskItem like TwoWeekPlanner
-const TaskItem = ({
-  task,
-  deleteTask,
-  startEditingTask,
-  editingTaskId,
-  formData,
-  setFormData,
-  saveTask,
-}) => {
+// Single Task Item
+const TaskItem = ({ task, deleteTask, startEditingTask, editingTaskId, formData, setFormData, saveTask }) => {
   const isEditing = editingTaskId === task.id;
-
   return (
     <li className="task-item" onClick={(e) => e.stopPropagation()}>
       {isEditing ? (
         <div className="task-edit">
-          <input
-            value={formData.text}
-            onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-          />
-          <select
-            value={formData.priority}
-            onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-          >
+          <input value={formData.text} onChange={(e) => setFormData({ ...formData, text: e.target.value })} />
+          <select value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: e.target.value })}>
             <option value="high">High</option>
             <option value="medium">Medium</option>
             <option value="low">Low</option>
           </select>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
+          <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
           <button onClick={saveTask}>Save</button>
         </div>
       ) : (
@@ -275,4 +222,4 @@ const TaskItem = ({
   );
 };
 
-export default MonthlyPlanner;
+export default MonthlyPlanner
