@@ -1,0 +1,71 @@
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f9fbff;
+}
+
+.sidebar {
+  width: 240px;
+  background-color: #e6f2ff;
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.sidebar h2 {
+  margin-bottom: 20px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  padding: 10px 0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.sidebar ul li:hover {
+  background-color: #d0e7ff;
+  border-radius: 5px;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: 30px;
+}
+
+.dashboard .journey-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 30px;
+}
+
+.dashboard .journey-list li {
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.planner-box {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  max-width: 500px;
+}
+
+.planner-box button {
+  margin-top: 10px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  background-color: #1d72f3;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.planner-box button:hover {
+  background-color: #155bb5;
+}
