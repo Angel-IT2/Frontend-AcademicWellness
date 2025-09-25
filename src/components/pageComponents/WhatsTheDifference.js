@@ -118,7 +118,10 @@ const WhatsTheDifference = () => {
 
   return (
     <div className="container">
-      <h4>WhatsTheDifference</h4>
+      <h4>WhatsTheDifference </h4>
+      <div className="wdifference-caption">
+       Real Insights from your seniors: High school vs University
+      </div>
 
       {/* Toggle form */}
       <button id="toggleFormBtn" onClick={() => setShowForm(!showForm)}>
@@ -195,7 +198,7 @@ const WhatsTheDifference = () => {
                   <strong>{post.author}</strong>{" "}
                   <span className="tag">Senior Student</span>
                   <br />
-                  <small>{Math.floor(Math.random() * 50) + 1} posts</small>
+                  
                 </div>
               </div>
 
