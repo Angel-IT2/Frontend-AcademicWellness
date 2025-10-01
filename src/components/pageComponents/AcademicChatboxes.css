@@ -38,6 +38,7 @@
   font-weight: 800;
 }
 
+
 .header-subtitle {
   font-size: 0.9rem;
   color: #dcdcff;
@@ -86,7 +87,7 @@
   flex-direction: column;
 }
 
-.sidebar-header {
+.chatbox-sidebar-header {
   padding: 20px;
   border-bottom: 1px solid #4a4380;
   display: flex;
@@ -249,6 +250,7 @@
   background: #3a3361;
   border-left: 1px solid #4a4380;
   border-right: 1px solid #4a4380;
+  height: calc(100vh - 80px); /* 80px = header height */
 }
 
 .chatbox-main .chat-header {
@@ -301,6 +303,7 @@
   flex-direction: column;
   gap: 15px;
   background: #2b2a3e;
+  max-height: calc(100vh - 80px - 70px); /* 80px = header, 70px = input container */
 }
 
 .chatbox-main .chat-message {
@@ -570,8 +573,8 @@
 }
 
 .chatbox-main .send-button {
-  background: #BFA2FF;
-  color: #2b2a3e;
+  background: #1e90ff;
+  color: white;
   border: none;
   padding: 12px 24px;
   border-radius: 8px;
@@ -783,6 +786,102 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #6a5a9a;
+}
+
+/* --- Moderation Panel --- */
+.moderation-panel {
+  background: #4a4380;
+  border-left: 4px solid #ff4757;
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  color: #f0f0f5;
+  font-size: 0.85rem;
+}
+
+.moderation-panel h3 {
+  margin-bottom: 8px;
+  font-size: 1rem;
+  color: #BFA2FF;
+}
+
+.reported-msg {
+  background: #3a3361;
+  border: 1px solid #ff6b6b;
+  padding: 8px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.moderation-actions button {
+  margin-left: 6px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.moderation-actions button:first-child {
+  background: #4caf50;
+  color: #fff;
+}
+
+.moderation-actions button:last-child {
+  background: #f44336;
+  color: #fff;
+}
+
+/* --- Instructions Panel --- */
+.instructions {
+  background: #4a4380;
+  border-left: 4px solid #4a90e2;
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 8px;
+  color: #f0f0f5;
+  font-size: 0.85rem;
+}
+
+
+
+.instructions ul {
+  margin-top: 4px;
+  padding-left: 20px;
+}
+
+.instructions ul li {
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+  color: #8a7fb0;
+}
+
+/* --- Report Button --- */
+.report-btn {
+  background: #ffcccb;
+  border: none;
+  padding: 4px 8px;
+  margin-left: 8px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.report-btn:hover {
+  background: #ff9999;
+}
+
+/* --- Flag Label --- */
+.flag-label {
+  color: #ff4757;
+  font-weight: bold;
+  margin-left: 8px;
+  font-size: 0.75rem;
 }
 
 /* Responsive Design */

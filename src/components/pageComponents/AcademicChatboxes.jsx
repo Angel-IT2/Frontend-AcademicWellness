@@ -5,7 +5,6 @@ const AcademicChatboxes = () => {
   const [activeChannel, setActiveChannel] = useState('#General');
   const [channels, setChannels] = useState([
     { id: '#General', name: 'General Lounge', description: 'General academic discussions', unread: 0 },
-    { id: '#CS101', name: 'CS101 - Programming', description: 'Introduction to Programming', unread: 1 },
   ]);
   const [messages, setMessages] = useState({
     '#General': [],
@@ -16,9 +15,16 @@ const AcademicChatboxes = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [attachedFile, setAttachedFile] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [reportedMessages, setReportedMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const membersRef = useRef(null);
+   // 👤 Current user (role can be Student, TA, Professor)
+  const [currentUser] = useState({
+    name: "You",
+    role: "Student", // 🔹 Change to "TA" or "Professor" for moderation access
+    avatar: "🧑‍🎓"
+  });
 
   const activeMembers = [
     { name: 'John Student', avatar: '👨‍🎓', status: 'online', role: 'Student' },
@@ -126,6 +132,32 @@ const AcademicChatboxes = () => {
     setActiveChannel(id);
   };
 
+  // --- Moderator: Approve a message (remove "reported" flag) ---
+  const handleApproveMessage = (msgId) => {
+    setReportedMessages(prev => prev.filter(msg => msg.id !== msgId));
+    setMessages(prev => {
+      const updated = {};
+      for (let channelId in prev) {
+        updated[channelId] = prev[channelId].map(msg =>
+          msg.id === msgId ? { ...msg, reported: false } : msg
+        );
+      }
+      return updated;
+    });
+  };
+
+  // --- Moderator: Remove a reported message completely ---
+  const handleRemoveMessage = (msgId) => {
+    setReportedMessages(prev => prev.filter(msg => msg.id !== msgId));
+    setMessages(prev => {
+      const updated = {};
+      for (let channelId in prev) {
+        updated[channelId] = prev[channelId].filter(msg => msg.id !== msgId);
+      }
+      return updated;
+    });
+  };
+
   return (
     <div className="chatbox-wrapper">
       {/* Header */}
@@ -148,10 +180,34 @@ const AcademicChatboxes = () => {
       <div className="chatbox-container">
         {/* Left Sidebar */}
         <div className="chatbox-sidebar">
-          <div className="sidebar-header">
+          <div className="chatbox-sidebar-header">
             <h3>Academic Chatboxes</h3>
             <button className="new-chatbox-btn" onClick={createNewChannel}>+ New</button>
           </div>
+
+          
+          {(currentUser.role === "TA" || currentUser.role === "Professor") && (
+  <div className="moderation-panel">
+    <h3>Moderation</h3>
+    {reportedMessages.length === 0 ? (
+      <p>No reported messages</p>
+    ) : (
+      <ul>
+        {reportedMessages.map((msg) => (
+          <li key={msg.id} className="reported-msg">
+            <strong>{msg.sender}</strong>: {msg.text}
+            <span className="timestamp"> ({msg.channelId})</span>
+            <div className="moderation-actions">
+              <button onClick={() => handleApproveMessage(msg.id)}>✅ Approve</button>
+              <button onClick={() => handleRemoveMessage(msg.id)}>❌ Remove</button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+)}
+
           <div className="search-container">
             <input
               type="text"
@@ -189,6 +245,7 @@ const AcademicChatboxes = () => {
         {/* Main Chat Area */}
         <div className="chatbox-main">
           <div className="chat-header">
+            
             <div className="channel-header">
               <h3>{activeChannel}</h3>
               <p>{getChannelDescription()}</p>
@@ -199,7 +256,19 @@ const AcademicChatboxes = () => {
               <button className="chat-action-btn" onClick={scrollToMembers} title="Members">👥</button>
             </div>
           </div>
-
+          {/* Instructions for students */}
+{activeChannel === '#General' && messages['#General']?.length === 0 && (
+  <div className="instructions">
+    <p>
+      This is your space to collaborate with peers. You can:
+      <ul>
+        <li>💬 Start a conversation in the General Lounge.</li>
+        <li>➕ Create new chatboxes for specific courses or projects.</li>
+        <li>⚠ Report inappropriate content (reviewed by TAs/Professors).</li>
+      </ul>
+    </p>
+  </div>
+)}
           <div className="chatbox-messages">
             {messages[activeChannel]?.length > 0 ? (
               messages[activeChannel].map((msg, idx) => (
@@ -211,6 +280,7 @@ const AcademicChatboxes = () => {
                       {msg.role !== 'Student' && msg.role !== 'You' && <span className="role-badge">{msg.role}</span>}
                       <span className="timestamp">{msg.time}</span>
                     </div>
+                    
                     <div className="text">{msg.text}</div>
                     {msg.file && (
                       <a href={msg.file.url} download={msg.file.name} className="attached-file">
