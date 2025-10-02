@@ -8,6 +8,10 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
   const [tasks, setTasks] = useState(propTasks);
   const setTasksSafe = propSetTasks || setTasks;
 
+  useEffect(() => {
+    setTasks(propTasks);
+  }, [propTasks]);
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [editingTaskId, setEditingTaskId] = useState(null);
@@ -38,12 +42,7 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
   };
 
   const weekdays = startWeekMonday ? [...WEEKDAYS.slice(1), WEEKDAYS[0]] : WEEKDAYS;
-
-  const daysInMonth = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth() + 1,
-    0
-  ).getDate();
+  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
 
   let firstDayOfWeek = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
   if (startWeekMonday) firstDayOfWeek = (firstDayOfWeek + 6) % 7;
@@ -167,10 +166,27 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
 
       <main className="calendar-container">
         <div className="calendar-frame">
+          {/* Calendar Navigation */}
           <div className="calendar-nav">
-            <button onClick={prevMonth}>←</button>
+            <button
+              onClick={prevMonth}
+              style={{
+                backgroundColor: themeColor || "#e0e7ff",
+                color: themeColor ? "#fff" : "#4338ca",
+              }}
+            >
+              ←
+            </button>
             <div>{monthName}</div>
-            <button onClick={nextMonth}>→</button>
+            <button
+              onClick={nextMonth}
+              style={{
+                backgroundColor: themeColor || "#e0e7ff",
+                color: themeColor ? "#fff" : "#4338ca",
+              }}
+            >
+              →
+            </button>
           </div>
 
           <div className="weekday-labels">
@@ -262,6 +278,19 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
               );
             })}
           </div>
+
+          {/* Legend */}
+          <div className="calendar-legend">
+            <div className="legend-item">
+              <span className="legend-color legend-high"></span> High Priority
+            </div>
+            <div className="legend-item">
+              <span className="legend-color legend-medium"></span> Medium Priority
+            </div>
+            <div className="legend-item">
+              <span className="legend-color legend-low"></span> Low Priority
+            </div>
+          </div>
         </div>
       </main>
     </div>
@@ -304,13 +333,12 @@ const TaskItem = ({ task, deleteTask, startEditingTask, editingTaskId, formData,
               <button onClick={() => deleteTask(task.id)}>×</button>
             </div>
           </div>
-          {/* ✅ Time shown at the bottom, no emoji */}
           {task.time && <div className="task-time">{task.time}</div>}
           {task.description && <div className="task-description">{task.description}</div>}
         </>
       )}
     </li>
-  );
+  ); 
 };
 
 export default MonthlyPlanner;

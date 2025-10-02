@@ -213,7 +213,6 @@
   overflow-y: auto;
 }
 
-/* Task Item */
 .task-item {
   font-size: 0.8rem;
   margin-bottom: 2px;
@@ -283,7 +282,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.2);
+  background: transparent;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -296,7 +295,7 @@
   border-radius: 12px;
   max-width: 400px;
   width: 90%;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  box-shadow: 0 0 0 3px #2196f3; /* blue highlight border */
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -332,14 +331,99 @@
   margin-top: 10px;
 }
 
+/* === Legend === */
+.calendar-legend {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend-high { background: #ef4444; }
+.legend-medium { background: #f59e0b; }
+.legend-low { background: #10b981; }
+
+/* === Print Styles === */
 @media print {
-  .planner-header, .monthly-page, .sidebar, .footer, .header-actions {
-    display: none;
+  /* hide UI elements including sidebar and settings */
+  .settings-panel,
+  .header-actions,
+  .sidebar,
+  .footer,
+  .planner-header {
+    display: none !important;
   }
-  body { padding: 0; margin: 0; }
-  .calendar-container { visibility: visible; position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; border: none; }
-  .calendar-container * { visibility: visible; }
-  .calendar-legend { visibility: visible; position: relative; margin-top: 1rem; }
-  .calendar-legend * { visibility: visible; }
-  .priority-badge, .legend-color, .calendar-day.weekend, .task-item { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    padding: 0;
+    margin: 0;
+  }
+
+  /* show calendar fully */
+  .calendar-container {
+    visibility: visible !important;
+    position: relative !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .calendar-container * {
+    visibility: visible !important;
+  }
+
+  /* legend visible */
+  .calendar-legend {
+    visibility: visible !important;
+    position: relative;
+    margin-top: 1rem;
+  }
+
+  .calendar-legend * {
+    visibility: visible !important;
+  }
+
+  /* preserve all colors */
+  .calendar-frame,
+  .calendar-day,
+  .calendar-day.today,
+  .calendar-day.weekend,
+  .task-item,
+  .priority-badge,
+  .legend-color {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* remove modal if open */
+  .modal-overlay {
+    display: none !important;
+  }
+
+  /* === Print Header: show "Monthly Planner" === */
+  .planner-page::before {
+    content: "Monthly Planner";
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e3a8a; /* matches theme */
+    text-align: center;
+    margin-bottom: 1rem;
+  }
 }
