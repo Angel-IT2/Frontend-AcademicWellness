@@ -24,7 +24,8 @@ function Login() {
     if (storedUser.email === email && storedUser.password === password) {
       setError("");
       alert("Login successful!");
-      navigate("/dashboard"); // ✅ Redirect directly to Dashboard
+      localStorage.setItem("loggedInUser", email); // ✅ Save logged-in user
+      navigate("/dashboard"); // Redirect to Dashboard
     } else {
       setError("Invalid email or password.");
     }
@@ -57,10 +58,10 @@ function Login() {
 
         <p className="auth-or">Or continue with</p>
         <div className="auth-social">
-          <button className="social-btn google"><FaGoogle /> Google</button>
-          <button className="social-btn microsoft"><FaMicrosoft /> Microsoft</button>
-          <button className="social-btn apple"><FaApple /> Apple</button>
-          <button className="social-btn phone"><FaPhone /> Phone</button>
+          <button type="button" className="social-btn google"><FaGoogle /> Google</button>
+          <button type="button" className="social-btn microsoft"><FaMicrosoft /> Microsoft</button>
+          <button type="button" className="social-btn apple"><FaApple /> Apple</button>
+          <button type="button" className="social-btn phone"><FaPhone /> Phone</button>
         </div>
 
         <p className="auth-footer">

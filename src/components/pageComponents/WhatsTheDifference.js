@@ -10,7 +10,7 @@ const WhatsTheDifference = () => {
     if (diffDays === 0) return "Today";
     if (diffDays === 1) return "Yesterday";
     if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays/7)} weeks ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
     return d.toLocaleDateString();
   };
 
@@ -59,6 +59,21 @@ const WhatsTheDifference = () => {
   const [replying, setReplying] = useState(null);
   const [replyText, setReplyText] = useState("");
 
+  // ✅ get logged in user
+  const loggedInUser = localStorage.getItem("loggedInUser");
+
+  // ✅ track helpful clicks per user
+  const [helpfulClicked, setHelpfulClicked] = useState(() => {
+    const saved = JSON.parse(localStorage.getItem("helpfulClicked")) || {};
+    return saved;
+  });
+
+  // helper: check if user already clicked
+  const hasUserClicked = (postId) => {
+    if (!loggedInUser) return false;
+    return helpfulClicked[loggedInUser]?.includes(postId);
+  };
+
   // handle form input
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -89,11 +104,26 @@ const WhatsTheDifference = () => {
     setPendingPosts(pendingPosts.filter((_, i) => i !== idx));
   };
 
-  // helpful
-  const increaseHelpful = (idx) => {
-    const newPosts = [...posts];
-    newPosts[idx].helpful += 1;
+  // ✅ helpful (restricted per user)
+  const increaseHelpful = (postId) => {
+    if (!loggedInUser) {
+      alert("You must be logged in to mark helpful.");
+      return;
+    }
+    if (hasUserClicked(postId)) return; // already clicked
+
+    const newPosts = posts.map((p) =>
+      p.timestamp === postId ? { ...p, helpful: p.helpful + 1 } : p
+    );
     setPosts(newPosts);
+
+    // update clicked state
+    const updatedClicked = {
+      ...helpfulClicked,
+      [loggedInUser]: [...(helpfulClicked[loggedInUser] || []), postId]
+    };
+    setHelpfulClicked(updatedClicked);
+    localStorage.setItem("helpfulClicked", JSON.stringify(updatedClicked));
   };
 
   // submit reply
@@ -103,7 +133,7 @@ const WhatsTheDifference = () => {
       return;
     }
     const newPosts = [...posts];
-    newPosts[idx].replies.push({ text: replyText, author: "You" });
+    newPosts[idx].replies.push({ text: replyText, author: loggedInUser || "You" });
     setPosts(newPosts);
     setReplying(null);
     setReplyText("");
@@ -198,7 +228,6 @@ const WhatsTheDifference = () => {
                   <strong>{post.author}</strong>{" "}
                   <span className="tag">Senior Student</span>
                   <br />
-                  
                 </div>
               </div>
 
@@ -206,11 +235,17 @@ const WhatsTheDifference = () => {
 
               <div className="actions">
                 <button
-                onClick={() => {
-                  const originalIndex = posts.findIndex(p => p.timestamp === post.timestamp);
-                  increaseHelpful(originalIndex);
+                  onClick={() => increaseHelpful(post.timestamp)}
+                  disabled={hasUserClicked(post.timestamp)}
+                  style={{
+                    color: hasUserClicked(post.timestamp) ? "gray" : "inherit",
+                    cursor: hasUserClicked(post.timestamp)
+                      ? "not-allowed"
+                      : "pointer"
                   }}
-                  >👍 Helpful ({post.helpful}) </button>
+                >
+                  👍 Helpful ({post.helpful})
+                </button>
                 <button>Report</button>
                 <button
                   className="reply-btn"
