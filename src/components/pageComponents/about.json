@@ -1,0 +1,36 @@
+{
+  "title": "UniPath: Your First-Year Companion",
+  "subtitle": "A peer-powered platform supporting academic and social wellbeing.",
+  "sections": [
+    {
+      "heading": "Academic Wellbeing",
+      "items": [
+        "Academic planning tools & resources",
+        "Peer chatrooms for academic help",
+        "Faculty-specific tips from seniors"
+      ],
+      "image": "/assets/images/academic.jpg"
+    },
+    {
+      "heading": "Social Wellbeing",
+      "items": [
+        "Chatrooms to connect students",
+        "Event boards & social peer advice",
+        "Safe space for students to ask & share"
+      ],
+      "image": "/assets/images/social.jpg"
+    }
+  ],
+  "benefits": {
+    "Stronger Academic Wellbeing": [
+      "First-years get practical academic support from experienced peers",
+      "Peer-led advice on study techniques, planning, and adjustment",
+      "Access to chatrooms for specific courses or academic discussions"
+    ],
+    "Better Social Wellbeing": [
+      "Open peer chatrooms foster connection and reduce isolation",
+      "Shared advice on navigating campus life, services, and social tips",
+      "Encourages community building across faculties"
+    ]
+  }
+}

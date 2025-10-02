@@ -1,0 +1,73 @@
+.about-container {
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #222;
+}
+
+.about-header h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.about-header p {
+  font-size: 1.2rem;
+  color: #555;
+}
+
+.wellbeing-sections, .benefits-section {
+  margin-top: 2rem;
+}
+
+.wellbeing-section {
+  margin-bottom: 2rem;
+}
+
+.section-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2rem;
+}
+
+.section-text {
+  flex: 1 1 300px;
+}
+
+.section-text h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.section-image {
+  flex: 1 1 300px;
+}
+
+.section-image img {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.benefit-category {
+  margin-bottom: 1.5rem;
+}
+
+h10 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+h11 {
+  font-size: 1.2rem;
+  margin-bottom: 0.3rem;
+}
+
+ul {
+  list-style-type: disc;
+  margin-left: 1.5rem;
+}
+
+li {
+  margin-bottom: 0.3rem;
+}
