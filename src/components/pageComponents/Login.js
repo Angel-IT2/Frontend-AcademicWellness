@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaGoogle, FaMicrosoft, FaApple, FaPhone } from "react-icons/fa";
+import { FaGoogle} from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import "./Auth.css";
@@ -59,9 +59,6 @@ function Login() {
         <p className="auth-or">Or continue with</p>
         <div className="auth-social">
           <button type="button" className="social-btn google"><FaGoogle /> Google</button>
-          <button type="button" className="social-btn microsoft"><FaMicrosoft /> Microsoft</button>
-          <button type="button" className="social-btn apple"><FaApple /> Apple</button>
-          <button type="button" className="social-btn phone"><FaPhone /> Phone</button>
         </div>
 
         <p className="auth-footer">
