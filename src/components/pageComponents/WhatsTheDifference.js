@@ -194,7 +194,6 @@ const WhatsTheDifference = () => {
               <span>
                 <strong>{post.title}</strong> by {post.author}
               </span>
-              <button onClick={() => approvePost(idx)}>Approve</button>
             </div>
           ))}
         </div>
