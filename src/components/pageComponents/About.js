@@ -5,13 +5,14 @@ import "./About.css";
 const About = () => {
   return (
     <div className="about-container">
+        <div className="about-contents">
       {/* Title and Subtitle */}
       <header className="about-header">
         <h1>{aboutData.title}</h1>
         <p>{aboutData.subtitle}</p>
       </header>
 
-      {/* Wellbeing Sections with Images */}
+      {/* Wellbeing Sections  */}
       <section className="wellbeing-sections">
         {aboutData.sections.map((section, index) => (
           <div key={index} className="wellbeing-section">
@@ -24,9 +25,7 @@ const About = () => {
                   ))}
                 </ul>
               </div>
-              <div className="section-image">
-                <img src={section.image} alt={section.heading} />
-              </div>
+              
             </div>
           </div>
         ))}
@@ -46,6 +45,7 @@ const About = () => {
           </div>
         ))}
       </section>
+      </div>
     </div>
   );
 };

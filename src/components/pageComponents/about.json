@@ -8,8 +8,7 @@
         "Academic planning tools & resources",
         "Peer chatrooms for academic help",
         "Faculty-specific tips from seniors"
-      ],
-      "image": "/assets/images/academic.jpg"
+      ]
     },
     {
       "heading": "Social Wellbeing",
@@ -17,8 +16,8 @@
         "Chatrooms to connect students",
         "Event boards & social peer advice",
         "Safe space for students to ask & share"
-      ],
-      "image": "/assets/images/social.jpg"
+      ]
+      
     }
   ],
   "benefits": {

@@ -2,6 +2,7 @@
   padding: 2rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #222;
+  
 }
 
 .about-header h1 {
@@ -10,8 +11,12 @@
 }
 
 .about-header p {
-  font-size: 1.2rem;
-  color: #555;
+  text-align: center;
+  margin-top: 12px;
+  margin-bottom: 20px;
+  font-size: 25px;
+  color: #666;
+  font-style: italic;
 }
 
 .wellbeing-sections, .benefits-section {
@@ -33,21 +38,12 @@
   flex: 1 1 300px;
 }
 
-.section-text h2 {
+.section-text h10 {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
 }
 
-.section-image {
-  flex: 1 1 300px;
-}
 
-.section-image img {
-  width: 100%;
-  max-width: 400px;
-  border-radius: 8px;
-  object-fit: cover;
-}
 
 .benefit-category {
   margin-bottom: 1.5rem;
