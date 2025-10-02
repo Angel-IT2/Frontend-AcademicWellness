@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 
@@ -20,6 +20,17 @@ import MonthlyPlanner from "./components/pageComponents/MonthlyPlanner";
 import AcademicChatboxes from "./components/pageComponents/AcademicChatboxes";
 
 function App() {
+  // Shared tasks state with localStorage persistence
+  const [tasks, setTasks] = useState(() => {
+    const saved = localStorage.getItem("tasks");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Save tasks to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
+
   return (
     <Router>
       <div className="App">
@@ -31,13 +42,21 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/faqs" element={<FAQ />} />
 
-            {/* Dashboard Layout with nested routes */}
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="profile" element={<Profile />} />
               <Route path="whats-the-difference" element={<WhatsTheDifference />} />
-              <Route path="two-week-planner" element={<TwoWeekPlanner />} />
-              <Route path="monthly-planner" element={<MonthlyPlanner />} />
+
+              {/* Pass tasks and setTasks to planners */}
+              <Route
+                path="two-week-planner"
+                element={<TwoWeekPlanner tasks={tasks} setTasks={setTasks} />}
+              />
+              <Route
+                path="monthly-planner"
+                element={<MonthlyPlanner tasks={tasks} setTasks={setTasks} />}
+              />
+
               <Route path="academic-chatboxes" element={<AcademicChatboxes />} />
             </Route>
           </Routes>
