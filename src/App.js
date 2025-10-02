@@ -11,6 +11,7 @@ import Home from "./components/pageComponents/Home";
 import Login from "./components/pageComponents/Login";
 import Register from "./components/pageComponents/Register";
 import FAQ from "./components/pageComponents/FAQ";
+import About from "./components/pageComponents/About";
 import DashboardLayout from "./components/pageComponents/DashboardLayout";
 import Dashboard from "./components/pageComponents/Dashboard";
 import Profile from "./components/pageComponents/Profile";
@@ -41,6 +42,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/faqs" element={<FAQ />} />
+            <Route path="/About" element={<About />} />
 
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<Dashboard />} />
