@@ -3,63 +3,84 @@ import "./TwoWeekPlanner.css";
 
 const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-const TwoWeekPlanner = () => {
-  const [calendarTasks, setCalendarTasks] = useState([]);
+const helpSteps = [
+  { id: "calendar-caption", text: "This caption gives you quick info about the planner." },
+  { id: "calendar-cell", text: "Click a day to add/edit tasks.", action: "openCell" },
+  { id: "task-name-input", text: "Task name: Enter the name of your task." },
+  { id: "task-priority-select", text: "Priority: Set High, Medium, or Low." },
+  { id: "task-description-textarea", text: "Description: Optional details for your task." },
+  { id: "task-edit-btn", text: "✎ button lets you edit a task." },
+  { id: "task-delete-btn", text: "× button lets you delete a task." },
+  { id: "weekdays", text: "Weekday labels: Days of the week." },
+  { id: "legend-high", text: "High priority tasks are marked in red." },
+  { id: "legend-medium", text: "Medium priority tasks are marked in yellow." },
+  { id: "legend-low", text: "Low priority tasks are marked in green." },
+];
+
+const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
+  const tasks = propTasks;
+  const setTasksSafe = propSetTasks || (() => {});
+
   const [activeDate, setActiveDate] = useState(null);
   const [editingTaskId, setEditingTaskId] = useState(null);
-  const [formData, setFormData] = useState({
-    text: "",
-    priority: "medium",
-    description: "",
-  });
+  const [showHelp, setShowHelp] = useState(false);
+  const [helpStep, setHelpStep] = useState(0);
+  const [formData, setFormData] = useState({ text: "", priority: "medium", description: "" });
+  const [descriptionStyle, setDescriptionStyle] = useState(null);
 
-   const formRef = useRef();
+  const modalRef = useRef();
   const today = new Date();
-  
-  // Calculate the first day (Sunday) of the current week
+
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${d.getFullYear()}-${month}-${day}`;
+  };
+
+  const todayStr = formatDate(today);
   const firstDayOfWeek = new Date(today);
   firstDayOfWeek.setDate(today.getDate() - today.getDay());
 
-  const startMonth = today.getMonth(); // It's better to base the month on today's actual date
-
-  // Generate the 14 days starting from the calculated Sunday
   const daysArray = [...Array(14)].map((_, i) => {
     const d = new Date(firstDayOfWeek);
     d.setDate(firstDayOfWeek.getDate() + i);
     return d;
   });
 
-  const monthName = firstDayOfWeek.toLocaleString(undefined, { month: "long" }).toUpperCase();
+  const monthName = today.toLocaleString(undefined, { month: "long" }).toUpperCase();
 
+  // ---------------- TASK HANDLERS ----------------
   const handleDateClick = (dateStr) => {
-    if (activeDate !== dateStr) {
-      setFormData({ text: "", priority: "medium", description: "" });
-      setEditingTaskId(null);
-    }
     setActiveDate(dateStr);
+    setEditingTaskId(null);
+    const dayTasks = tasks.filter((t) => t.date === dateStr);
+    if (dayTasks.length > 0) {
+      setEditingTaskId(dayTasks[0].id);
+      setFormData({ text: dayTasks[0].text, priority: dayTasks[0].priority, description: dayTasks[0].description });
+    } else {
+      setFormData({ text: "", priority: "medium", description: "" });
+    }
   };
 
   const saveTask = () => {
-    if (!formData.text) return;
-
+    if (!formData.text || !activeDate) return;
     if (editingTaskId) {
-      setCalendarTasks(calendarTasks.map(task =>
-        task.id === editingTaskId ? { ...task, ...formData } : task
-      ));
+      setTasksSafe((prev) =>
+        prev.map((task) => (task.id === editingTaskId ? { ...task, ...formData } : task))
+      );
     } else {
-      setCalendarTasks([
-        ...calendarTasks,
-        { id: Date.now(), date: activeDate, ...formData },
-      ]);
+      setTasksSafe((prev) => [...prev, { id: Date.now(), date: activeDate, ...formData }]);
     }
-
     setFormData({ text: "", priority: "medium", description: "" });
     setActiveDate(null);
     setEditingTaskId(null);
   };
 
   const deleteTask = (id) => {
-    setCalendarTasks(calendarTasks.filter((t) => t.id !== id));
+    setTasksSafe((prev) => prev.filter((t) => t.id !== id));
+    setActiveDate(null);
+    setEditingTaskId(null);
   };
 
   const startEditingTask = (task) => {
@@ -68,88 +89,65 @@ const TwoWeekPlanner = () => {
     setActiveDate(task.date);
   };
 
+  // ---------------- HELP TOUR ----------------
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (formRef.current && !formRef.current.contains(e.target)) {
-        setActiveDate(null);
-        setEditingTaskId(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    if (!showHelp) return;
+    const step = helpSteps[helpStep];
+    if (!step) return;
 
+    const el = document.getElementById(step.id);
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    const rect = el.getBoundingClientRect();
+
+    // Description box positioned near element
+    setDescriptionStyle({
+      top: rect.top + window.scrollY + rect.height / 2 - 30 + "px",
+      left: Math.max(rect.left + window.scrollX - 320, 10) + "px",
+      text: step.text,
+    });
+  }, [helpStep, showHelp]);
+
+  const nextHelpStep = () => {
+    if (helpStep < helpSteps.length - 1) {
+      setHelpStep(helpStep + 1);
+    } else {
+      setShowHelp(false);
+      setHelpStep(0);
+      setDescriptionStyle(null);
+      setActiveDate(null);
+    }
+  };
+
+  // ---------------- RENDER WEEK ----------------
   const renderWeek = (week) => (
     <div className="week-row">
       {week.map((day) => {
-        const dateStr = day.toISOString().split("T")[0];
-        const dayEvents = calendarTasks.filter((c) => c.date === dateStr);
+        const dateStr = formatDate(day);
+        const dayEvents = tasks.filter((t) => t.date === dateStr);
         const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-        const isNextMonth = day.getMonth() !== startMonth;
 
         return (
           <div
             key={dateStr}
-            className={`calendar-day ${isWeekend ? "weekend" : "weekday"} ${
-              activeDate === dateStr ? "active" : ""
-            } ${isNextMonth ? "next-month" : ""}`}
+            className={`calendar-day ${isWeekend ? "weekend" : "weekday"} ${dateStr === todayStr ? "today" : ""}`}
             onClick={() => handleDateClick(dateStr)}
+            id="calendar-cell"
           >
-            <div className="cell-date">
-              {day.getDate()}
-              {isNextMonth && (
-                <span className="next-month-indicator">Next Month</span>
-              )}
-            </div>
-
+            <div className="cell-date">{day.getDate()}</div>
             <ul className="task-list">
               {dayEvents.map((ev) => (
-                <TaskItem
-                  key={ev.id}
-                  task={ev}
-                  deleteTask={deleteTask}
-                  startEditingTask={startEditingTask}
-                  editingTaskId={editingTaskId}
-                  formData={formData}
-                  setFormData={setFormData}
-                  saveTask={saveTask}
-                />
+                <li key={ev.id} className="task-item" onClick={(e) => e.stopPropagation()}>
+                  <span className={`priority-badge ${ev.priority}`}></span>
+                  <span className="task-name">{ev.text}</span>
+                  <div className="task-actions">
+                    <button id="task-edit-btn" className="task-btn" onClick={() => startEditingTask(ev)}>✎</button>
+                    <button id="task-delete-btn" className="task-btn" onClick={() => deleteTask(ev.id)}>×</button>
+                  </div>
+                </li>
               ))}
             </ul>
-
-            {activeDate === dateStr && !editingTaskId && (
-              <div
-                className="task-form-popup"
-                ref={formRef}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <input
-                  placeholder="Task name"
-                  value={formData.text}
-                  onChange={(e) =>
-                    setFormData({ ...formData, text: e.target.value })
-                  }
-                />
-                <select
-                  value={formData.priority}
-                  onChange={(e) =>
-                    setFormData({ ...formData, priority: e.target.value })
-                  }
-                >
-                  <option value="high">High</option>
-                  <option value="medium">Medium</option>
-                  <option value="low">Low</option>
-                </select>
-                <textarea
-                  placeholder="Description"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                />
-                <button onClick={saveTask}>Save</button>
-              </div>
-            )}
           </div>
         );
       })}
@@ -161,100 +159,90 @@ const TwoWeekPlanner = () => {
 
   return (
     <div className="planner-page">
-      <h1>Two-Week Calendar Planner</h1>
-      <div className="calendar-caption">
+      <header className="planner-header">
+        <h1>Two-Week Calendar Planner</h1>
+        <button className="help-btn" onClick={() => { setShowHelp(true); setHelpStep(0); }}>Help</button>
+      </header>
+
+      <div className="calendar-caption" id="calendar-caption">
         Plan your next two weeks and focus on what matters most!
       </div>
 
       <div className="calendar-container">
         <div className="calendar-frame">
           <div className="calendar-header">{monthName}</div>
-          <div className="weekday-labels">
+          <div className="weekday-labels" id="weekdays">
             {weekdays.map((day) => (
-              <div key={day} className="weekday-label">
-                {day}
-              </div>
+              <div key={day} className="weekday-label">{day}</div>
             ))}
           </div>
 
           {renderWeek(firstWeek)}
           {renderWeek(secondWeek)}
-
-          <div className="calendar-legend">
-            <div className="legend-item">
-              <span className="legend-color high"></span> High Priority
-            </div>
-            <div className="legend-item">
-              <span className="legend-color medium"></span> Medium Priority
-            </div>
-            <div className="legend-item">
-              <span className="legend-color low"></span> Low Priority
-            </div>
-          </div>
         </div>
       </div>
-    </div>
-  );
-};
 
-const TaskItem = ({
-  task,
-  deleteTask,
-  startEditingTask,
-  editingTaskId,
-  formData,
-  setFormData,
-  saveTask,
-}) => {
-  const isEditing = editingTaskId === task.id;
-
-  return (
-    <li className="task-item" onClick={(e) => e.stopPropagation()}>
-      {isEditing ? (
-        <div className="task-edit">
-          <input
-            value={formData.text}
-            onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-          />
-          <select
-            value={formData.priority}
-            onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-          >
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-          <button onClick={saveTask}>Save</button>
-        </div>
-      ) : (
-        <>
-          <div className="task-header">
-            <div className="task-name">
-              <span className={`priority-badge ${task.priority}`}></span>
-              {task.text}
-            </div>
-            <div>
-              <button
-                className="task-toggle-btn"
-                onClick={() => startEditingTask(task)}
-              >
-                ✎
-              </button>
-              <button className="delete-btn" onClick={() => deleteTask(task.id)}>
-                ×
-              </button>
+      {/* Task Modal */}
+      {activeDate && (
+        <div className="modal-overlay">
+          <div className="modal" ref={modalRef}>
+            <h2>{editingTaskId ? "Edit Task" : "Add Task"} - {activeDate}</h2>
+            <input id="task-name-input" placeholder="Task name..." value={formData.text} onChange={(e) => setFormData({ ...formData, text: e.target.value })} />
+            <select id="task-priority-select" value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: e.target.value })}>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+            <textarea id="task-description-textarea" placeholder="Description..." value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })}></textarea>
+            <div className="modal-actions">
+              <button className="task-save-btn" onClick={saveTask}>Save</button>
+              {editingTaskId && <button className="cancel-btn" onClick={() => deleteTask(editingTaskId)}>Delete</button>}
+              <button className="cancel-btn" onClick={() => { setActiveDate(null); setEditingTaskId(null); }}>Cancel</button>
             </div>
           </div>
-          {task.description && (
-            <div className="task-description">{task.description}</div>
-          )}
-        </>
+        </div>
       )}
-    </li>
+
+      {/* Description box with step number inside */}
+      {showHelp && descriptionStyle && (
+        <div
+          className="help-description-box"
+          style={{
+            position: "absolute",
+            top: descriptionStyle.top,
+            left: descriptionStyle.left,
+            width: "300px",
+            padding: "10px",
+            background: "#fff",
+            border: "2px solid #007bff",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            zIndex: 2000,
+          }}
+        >
+          <div
+            style={{
+              fontWeight: "bold",
+              marginBottom: "6px",
+              color: "#007bff",
+            }}
+          >
+            Step {helpStep + 1}
+          </div>
+          <div>{descriptionStyle.text}</div>
+          <div style={{ marginTop: "8px", textAlign: "right" }}>
+            <button className="task-save-btn" onClick={nextHelpStep}>Next</button>
+          </div>
+        </div>
+      )}
+
+      {/* Legend */}
+      <div className="calendar-legend">
+        <div className="legend-item" id="legend-high"><div className="legend-color high" /> High Priority</div>
+        <div className="legend-item" id="legend-medium"><div className="legend-color medium" /> Medium Priority</div>
+        <div className="legend-item" id="legend-low"><div className="legend-color low" /> Low Priority</div>
+      </div>
+    </div>
   );
 };
 

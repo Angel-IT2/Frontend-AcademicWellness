@@ -30,6 +30,7 @@
   color: #2563eb;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
+
 /* === Planner Layout === */
 .planner-page {
   padding: 1rem;
@@ -50,7 +51,7 @@
 }
 
 .planner-header h1 {
-  color:white;
+  color: white;
   font-size: 1.9rem;
   font-weight: 800;
 }
@@ -109,6 +110,10 @@
 }
 .calendar-day.weekend:hover{
   background: #b390b3;
+}
+
+.calendar-day.today {
+  border: 2px solid #2563eb;
 }
 
 .weekday-labels {
@@ -181,14 +186,12 @@
   transform: scale(1.2);
 }
 
-/* Apply hover effect ONLY when NO day in the grid is active */
 .calendar-grid:not(:has(.calendar-day.active)) .calendar-day:hover {
   transform: scale(1.03);
   box-shadow: inset 0 0 0 2px #e0e7ff;
 }
 
 .calendar-day.active {
-  /* Instead of hardcode: #eef2ff / #6366f1 */
   background: color-mix(in srgb, var(--theme-color) 20%, white);
   border: 2px solid var(--theme-color);
 }
@@ -210,19 +213,18 @@
   overflow-y: auto;
 }
 
-/* Task Item */
 .task-item {
   font-size: 0.8rem;
   margin-bottom: 2px;
   padding: 2px 4px;
   border-radius: .25rem;
-  background: #cbf876;
+  background: #cbf876; /* light green */
   display: flex;
   flex-direction: column;
 }
 
 .task-item:hover {
-  background: rgba(0, 29, 39, 0.15);
+  background: rgba(203, 248, 118, 0.35);
 }
 
 .task-header {
@@ -238,10 +240,28 @@
   gap: .4rem;
 }
 
+.task-time {
+  color: #000;
+  font-size: 0.75rem;
+  margin-top: 2px;
+}
+
 .task-description {
   color: #000;
   font-size: 0.75rem;
   margin-top: 2px;
+}
+
+.task-btn {
+  color: black;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 4px;
+  font-size: 0.85rem;
+}
+.task-btn:hover {
+  opacity: 0.7;
 }
 
 /* Priority Badges */
@@ -251,132 +271,159 @@
   border-radius: 50%;
   display: inline-block;
 }
-.priority-badge.high {
-  background: #ef4444; /* red-500 */
-}
-.priority-badge.medium {
-  background: #f59e0b; /* amber-500 */
-}
-.priority-badge.low {
-  background: #10b981; /* emerald-500 */
-}
+.priority-badge.high { background: #ef4444; }
+.priority-badge.medium { background: #f59e0b; }
+.priority-badge.low { background: #10b981; }
 
 /* === Popup Form === */
-.task-form-popup {
-  position: absolute;
-  top: 1.8rem;
-  left: 4px;
-  right: 4px;
-  background: white;
-  border: 1px solid #d1d5db;
-  border-radius: .4rem;
-  padding: .5rem;
-  z-index: 10;
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 0 0 3px #2196f3; /* blue highlight border */
   display: flex;
   flex-direction: column;
-  gap: .3rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  gap: 10px;
+  z-index: 1001;
 }
 
-.task-form-popup input,
-.task-form-popup select,
-.task-form-popup textarea {
+.modal h2 {
+  margin: 0 0 10px;
+  color: #007bff;
+  font-size: 18px;
+  text-align: center;
+}
+
+.modal input,
+.modal select,
+.modal textarea {
   width: 100%;
-  font-size: 0.85rem;
-  padding: 4px 6px;
-  border: 1px solid #d1d5db;
-  border-radius: .3rem;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
 }
 
-.task-form-popup button {
-  background: var(--theme-color);
-  color: white;
+.modal textarea {
+  min-height: 70px;
+  resize: vertical;
 }
-.task-form-popup button:hover {
-  filter: brightness(0.9);
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 /* === Legend === */
 .calendar-legend {
-  margin-top: 1.2rem;
+  margin-top: 1rem;
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: #374151;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: .4rem;
-  font-size: 0.85rem;
-  color: #374151;
+  gap: 6px;
 }
 
 .legend-color {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  display:inline-block;
 }
-.legend-color.high { background: #ef4444; }
-.legend-color.medium { background: #f59e0b; }
-.legend-color.low { background: #10b981; }
 
+.legend-high { background: #ef4444; }
+.legend-medium { background: #f59e0b; }
+.legend-low { background: #10b981; }
 
+/* === Print Styles === */
 @media print {
-  /* Hiding elements we don't want to print, like the header and buttons */
-  .planner-header, .monthly-page, .sidebar, .footer, .header-actions {
-    display: none;
+  /* hide UI elements including sidebar and settings */
+  .settings-panel,
+  .header-actions,
+  .sidebar,
+  .footer,
+  .planner-header {
+    display: none !important;
   }
 
-  /* Reset body padding/margin for printing */
   body {
     padding: 0;
     margin: 0;
   }
 
-  
+  /* show calendar fully */
   .calendar-container {
-    visibility: visible;
-    position: absolute;
-    left: 0;
-    top: 0;         
-    width: 100%;
-    margin: 0;      
-    padding: 0;
-    box-shadow: none; 
-    border: none;     
+    visibility: visible !important;
+    position: relative !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
   }
 
-  /* Making sure everything inside the calendar is also visible */
   .calendar-container * {
-    visibility: visible;
+    visibility: visible !important;
   }
-  
-  /* The legend to appear below the calendar */
+
+  /* legend visible */
   .calendar-legend {
-      visibility: visible;
-      position: relative; 
-      margin-top: 1rem;
+    visibility: visible !important;
+    position: relative;
+    margin-top: 1rem;
   }
-  
+
   .calendar-legend * {
-      visibility: visible;
+    visibility: visible !important;
   }
 
-  /* Ensuring background colors (the priority dots) actually print */
-  .priority-badge,
-  .legend-color {
-    -webkit-print-color-adjust: exact; /* Safari/Chrome */
-    print-color-adjust: exact;         /* Modern spec */
-  }
-
-  /* background colors for weekends and tasks to print correctly */
+  /* preserve all colors */
+  .calendar-frame,
+  .calendar-day,
+  .calendar-day.today,
   .calendar-day.weekend,
   .task-item,
   .priority-badge,
   .legend-color {
-    -webkit-print-color-adjust: exact; /* For Chrome, Safari, Edge */
-    print-color-adjust: exact;         
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
-  
+
+  /* remove modal if open */
+  .modal-overlay {
+    display: none !important;
+  }
+
+  /* === Print Header: show "Monthly Planner" === */
+  .planner-page::before {
+    content: "Monthly Planner";
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e3a8a; /* matches theme */
+    text-align: center;
+    margin-bottom: 1rem;
+  }
 }
