@@ -357,6 +357,61 @@
 .legend-medium { background: #f59e0b; }
 .legend-low { background: #10b981; }
 
+.tasks-panel {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.tasks-panel h2 {
+  margin-bottom: 1rem;
+  color: var(--theme-color, #6366f1);
+}
+
+.detailed-task-list {
+   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.detailed-task {
+  border-left: 5px solid;
+  border-right: 5px solid;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  background: #fafafa;
+}
+
+.detailed-task.high { border-color: #e57373; }
+.detailed-task.medium { border-color: #ffb74d; }
+.detailed-task.low { border-color: #81c784; }
+
+.task-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.task-title {
+  font-weight: bold;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.task-desc {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: #444;
+}
+
+
 /* === Print Styles === */
 @media print {
   /* hide UI elements including sidebar and settings */
@@ -365,6 +420,9 @@
   .sidebar,
   .footer,
   .planner-header {
+    display: none !important;
+  }
+  .task-item button {
     display: none !important;
   }
 
