@@ -27,6 +27,7 @@ const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
   const [helpStep, setHelpStep] = useState(0);
   const [formData, setFormData] = useState({ text: "", priority: "medium", description: "" });
   const [descriptionStyle, setDescriptionStyle] = useState(null);
+  const [activeTaskId, setActiveTaskId] = useState(null);
 
   const modalRef = useRef();
   const today = new Date();
@@ -54,13 +55,7 @@ const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
   const handleDateClick = (dateStr) => {
     setActiveDate(dateStr);
     setEditingTaskId(null);
-    const dayTasks = tasks.filter((t) => t.date === dateStr);
-    if (dayTasks.length > 0) {
-      setEditingTaskId(dayTasks[0].id);
-      setFormData({ text: dayTasks[0].text, priority: dayTasks[0].priority, description: dayTasks[0].description });
-    } else {
-      setFormData({ text: "", priority: "medium", description: "" });
-    }
+    setFormData({ text: "", priority: "medium", description: "" });
   };
 
   const saveTask = () => {
@@ -88,6 +83,8 @@ const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
     setFormData({ text: task.text, priority: task.priority, description: task.description });
     setActiveDate(task.date);
   };
+  
+  
 
   // ---------------- HELP TOUR ----------------
   useEffect(() => {
@@ -120,6 +117,17 @@ const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
     }
   };
 
+  const handleTaskClick = (task) => {
+  setActiveTaskId(task.id);       // highlight this task
+  setActiveDate(task.date);       // open modal
+  setEditingTaskId(task.id);      // mark it as editing
+  setFormData({
+    text: task.text,
+    priority: task.priority,
+    description: task.description || "",
+  });
+};
+
   // ---------------- RENDER WEEK ----------------
   const renderWeek = (week) => (
     <div className="week-row">
@@ -138,13 +146,26 @@ const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
             <div className="cell-date">{day.getDate()}</div>
             <ul className="task-list">
               {dayEvents.map((ev) => (
-                <li key={ev.id} className="task-item" onClick={(e) => e.stopPropagation()}>
+                <li
+                key={ev.id}
+                className={`task-item ${activeTaskId === ev.id ? "active-task" : ""}`}
+                onClick={(e) => { e.stopPropagation();
+                  handleTaskClick(ev);
+                  }}
+                >
+                  
                   <span className={`priority-badge ${ev.priority}`}></span>
                   <span className="task-name">{ev.text}</span>
-                  <div className="task-actions">
-                    <button id="task-edit-btn" className="task-btn" onClick={() => startEditingTask(ev)}>✎</button>
-                    <button id="task-delete-btn" className="task-btn" onClick={() => deleteTask(ev.id)}>×</button>
-                  </div>
+                  {activeTaskId === ev.id && (
+                    <div className="task-actions">
+                      <button id="task-edit-btn"
+                      className="task-btn"
+                      onClick={() => startEditingTask(ev)}> ✎ </button>
+                      <button id="task-delete-btn" 
+                      className="task-btn"
+                      onClick={() => deleteTask(ev.id)}>×</button>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
@@ -156,6 +177,13 @@ const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
 
   const firstWeek = daysArray.slice(0, 7);
   const secondWeek = daysArray.slice(7, 14);
+
+   // Group tasks by day for the two-week period
+const tasksByDay = daysArray.map((day) => {
+  const dateStr = formatDate(day);
+  const dayTasks = tasks.filter((t) => t.date === dateStr);
+  return { date: dateStr, tasks: dayTasks };
+});
 
   return (
     <div className="planner-page">
@@ -181,6 +209,8 @@ const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
           {renderWeek(secondWeek)}
         </div>
       </div>
+  
+
 
       {/* Task Modal */}
       {activeDate && (
@@ -202,6 +232,7 @@ const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
           </div>
         </div>
       )}
+      
 
       {/* Description box with step number inside */}
       {showHelp && descriptionStyle && (
@@ -242,7 +273,48 @@ const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
         <div className="legend-item" id="legend-medium"><div className="legend-color medium" /> Medium Priority</div>
         <div className="legend-item" id="legend-low"><div className="legend-color low" /> Low Priority</div>
       </div>
+      {/* Detailed Tasks Section */}
+<div className="tasks-panel">
+  <h2>Tasks for Next Two Weeks</h2>
+  {tasksByDay.every(day => day.tasks.length === 0) ? (
+    <p className="no-tasks">No tasks in this period</p>
+  ) : (
+    <ul className="detailed-task-list">
+      {tasksByDay.map(({ date, tasks }) =>
+        tasks.length > 0 ? (
+          <li key={date} className="day-group">
+            <div className="day-label">
+              {new Date(date).toLocaleDateString(undefined, {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+              })}
+            </div>
+            <ul>
+              {tasks
+                .slice()
+                .sort((a, b) => (a.time || "").localeCompare(b.time || ""))
+                .map((task) => (
+                  <li key={task.id} className={`detailed-task ${task.priority}`}>
+                    <div className="task-top">
+                      {task.time && <span className="task-time">{task.time}</span>}
+                    </div>
+                    <div className="task-body">
+                      <span className="task-title">{task.text}</span>
+                      {task.description && <p className="task-desc">{task.description}</p>}
+                    </div>
+                  </li>
+                ))}
+            </ul>
+          </li>
+        ) : null
+      )}
+    </ul>
+  )}
+</div>
+
     </div>
+    
   );
 };
 
