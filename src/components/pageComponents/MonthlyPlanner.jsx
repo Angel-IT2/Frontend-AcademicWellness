@@ -25,7 +25,9 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [themeColor, setThemeColor] = useState(THEME_COLORS[0]);
   const [startWeekMonday, setStartWeekMonday] = useState(false);
+  const [activeTaskId, setActiveTaskId] = useState(null);
   const [highlightWeekends, setHighlightWeekends] = useState(true);
+  
 
   const formRef = useRef();
 
@@ -111,6 +113,16 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  // Get tasks only for the current month
+const currentMonthTasks = tasks.filter((t) => {
+  const taskDate = new Date(t.date);
+  return (
+    taskDate.getMonth() === currentDate.getMonth() &&
+    taskDate.getFullYear() === currentDate.getFullYear()
+  );
+});
+
 
   return (
     <div className="planner-page" style={{ "--theme-color": themeColor }}>
@@ -224,6 +236,9 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
                         formData={formData}
                         setFormData={setFormData}
                         saveTask={saveTask}
+                        activeTaskId={activeTaskId} 
+                        setActiveTaskId={setActiveTaskId}
+                        
                       />
                     ))}
                   </ul>
@@ -293,14 +308,51 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
           </div>
         </div>
       </main>
+        {/* Detailed Tasks Section */}
+<div className="tasks-panel">
+  <h2>Tasks for {monthName}</h2>
+  {currentMonthTasks.length === 0 ? (
+    <p className="no-tasks">No tasks this month</p>
+  ) : (
+    <ul className="detailed-task-list">
+      {currentMonthTasks
+        .slice()
+        .sort((a, b) => new Date(a.date) - new Date(b.date) || (a.time || "").localeCompare(b.time || ""))
+        .map((task) => (
+          <li key={task.id} className={`detailed-task ${task.priority}`}>
+            <div className="task-top">
+              <span className="task-date">
+                {new Date(task.date).toLocaleDateString(undefined, {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </span>
+              {task.time && <span className="task-time">{task.time}</span>}
+            </div>
+            <div className="task-body">
+              <span className="task-title">{task.text}</span>
+              {task.description && <p className="task-desc">{task.description}</p>}
+            </div>
+          </li>
+        ))}
+    </ul>
+  )}
+</div>
     </div>
   );
 };
 
-const TaskItem = ({ task, deleteTask, startEditingTask, editingTaskId, formData, setFormData, saveTask }) => {
+const TaskItem = ({ task, deleteTask, startEditingTask, editingTaskId, formData, setFormData, saveTask, activeTaskId, setActiveTaskId }) => {
   const isEditing = editingTaskId === task.id;
+  const isActive = activeTaskId === task.id;
   return (
-    <li className="task-item" onClick={(e) => e.stopPropagation()}>
+    <li className="task-item" 
+    onClick={(e) => {
+        e.stopPropagation();
+        // toggle open/close if same task clicked
+        setActiveTaskId(isActive ? null : task.id);
+    }}>
       {isEditing ? (
         <div className="task-edit">
           <input
@@ -328,10 +380,12 @@ const TaskItem = ({ task, deleteTask, startEditingTask, editingTaskId, formData,
               <span className={`priority-badge ${task.priority}`}></span>
               {task.text}
             </div>
+            {isActive && (
             <div>
               <button onClick={() => startEditingTask(task)}>✎</button>
               <button onClick={() => deleteTask(task.id)}>×</button>
             </div>
+            )};
           </div>
           {task.time && <div className="task-time">{task.time}</div>}
           {task.description && <div className="task-description">{task.description}</div>}
