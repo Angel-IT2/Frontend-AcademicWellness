@@ -30,7 +30,7 @@ function Login() {
       setLoading(false);
 
       if (response.ok) {
-        localStorage.setItem("token", data.token);
+        localStorage.setItem("token", data.tokens.access);
         localStorage.setItem("user", JSON.stringify(data.user));
         alert("Login successful!");
         navigate("/dashboard");
