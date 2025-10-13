@@ -3,100 +3,82 @@ import "./WhatstheDifference_style.css";
 
 const API_BASE = "https://backend-academicwellness.onrender.com/api";
 
-const saveTokens = (access, refresh) => {
-  localStorage.setItem("mod_access_token", access);
-  localStorage.setItem("mod_refresh_token", refresh);
-};
-const getAccess = () => localStorage.getItem("mod_access_token");
-const getRefresh = () => localStorage.getItem("mod_refresh_token");
-
 const ModeratorDifference = () => {
-  const [loginData, setLoginData] = useState({ username: "", password: "" });
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [filter, setFilter] = useState("pending");
   const [loading, setLoading] = useState(false);
 
-  // ========== AUTO TOKEN REFRESH ==========
-  const refreshAccessToken = async () => {
-    const refresh = getRefresh();
-    if (!refresh) return;
+  // Load moderator info
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
+    if (storedUser && token) {
+      const parsedUser = JSON.parse(storedUser);
+      if (parsedUser.student_type === "Moderator") {
+        setUser(parsedUser);
+        fetchPosts("pending", token);
+      }
+    }
+  }, []);
+
+  // Auto refresh token every 9 minutes
+  useEffect(() => {
+    const interval = setInterval(refreshToken, 9 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const refreshToken = async () => {
     try {
+      const refresh = localStorage.getItem("refresh_token");
+      if (!refresh) return;
       const res = await fetch(`${API_BASE}/auth/refresh/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh })
+        body: JSON.stringify({ refresh }),
       });
       const data = await res.json();
       if (res.ok && data.access) {
-        localStorage.setItem("mod_access_token", data.access);
+        localStorage.setItem("token", data.access);
       }
     } catch (err) {
       console.error("Token refresh failed:", err);
     }
   };
 
-  // Refresh every 9 minutes
-  useEffect(() => {
-    const interval = setInterval(refreshAccessToken, 9 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // ========== LOGIN ==========
-  const handleLogin = async () => {
-    if (!loginData.username || !loginData.password)
-      return alert("Enter credentials.");
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/auth/login/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(loginData)
-      });
-      const data = await res.json();
-      if (res.ok) {
-        saveTokens(data.access, data.refresh);
-        setLoggedIn(true);
-        alert("Moderator logged in successfully!");
-        fetchPosts("pending");
-      } else alert("Login failed.");
-    } catch (err) {
-      console.error("Login error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ========== FETCH POSTS ==========
-  const fetchPosts = async (status = "pending") => {
+  // Fetch posts by status
+  const fetchPosts = async (status = "pending", token) => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/wtd/posts/?status=${status}`, {
-        headers: { Authorization: `Bearer ${getAccess()}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (Array.isArray(data)) setPosts(data);
     } catch (err) {
-      console.error("Fetch posts error:", err);
+      console.error("Fetch error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // ========== APPROVE/REJECT ==========
+  // Approve or Reject posts
   const handleAction = async (id, action) => {
+    const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${API_BASE}/wtd/posts/${id}/${action}/`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${getAccess()}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (res.ok) {
         alert(`Post ${action}ed successfully.`);
-        fetchPosts(filter);
-      } else alert("Action failed.");
+        fetchPosts(filter, token);
+      } else {
+        alert("Action failed.");
+      }
     } catch (err) {
-      console.error("Moderator action error:", err);
+      console.error("Action error:", err);
     }
   };
 
@@ -106,32 +88,17 @@ const ModeratorDifference = () => {
     <div className="container">
       <h4>Moderator – WhatsTheDifference</h4>
       <div className="wdifference-caption">
-        Manage Insights from Senior Students
+        Manage insights submitted by Senior Students
       </div>
 
-      {!loggedIn ? (
-        <div className="new-post" style={{ backgroundColor: "#0b5ed7" }}>
-          <h2>Moderator Login</h2>
-          <input
-            type="text"
-            placeholder="Username (e.g. Mia)"
-            onChange={(e) =>
-              setLoginData({ ...loginData, username: e.target.value })
-            }
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            onChange={(e) =>
-              setLoginData({ ...loginData, password: e.target.value })
-            }
-          />
-          <button onClick={handleLogin} disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </div>
+      {!user ? (
+        <p>Only moderators can access this page.</p>
       ) : (
         <>
+          <p>
+            Logged in as <strong>{user.full_name}</strong> (Moderator)
+          </p>
+
           <div className="sort-controls">
             <label htmlFor="filterSelect">Filter by: </label>
             <select
@@ -139,7 +106,7 @@ const ModeratorDifference = () => {
               value={filter}
               onChange={(e) => {
                 setFilter(e.target.value);
-                fetchPosts(e.target.value);
+                fetchPosts(e.target.value, localStorage.getItem("token"));
               }}
             >
               <option value="pending">Pending</option>
@@ -150,34 +117,46 @@ const ModeratorDifference = () => {
 
           {loading && <p>Loading posts...</p>}
 
-          {posts.map((post) => (
-            <article className="post" key={post.id}>
-              <div className="post-header">
-                <span>{post.title}</span>
-                <span className="muted">{formatDate(post.created_at)}</span>
-              </div>
-              <div className="post-body">
-                <p>{post.content}</p>
-                <p>
-                  <strong>By:</strong> {post.author_username} |{" "}
-                  <strong>Status:</strong> {post.status}
-                </p>
-                <div className="actions">
-                  <span>👍 Helpful: {post.helpful_count}</span>
-                  {filter === "pending" && (
-                    <>
-                      <button onClick={() => handleAction(post.id, "approve")}>
-                        ✅ Approve
-                      </button>
-                      <button onClick={() => handleAction(post.id, "reject")}>
-                        ❌ Reject
-                      </button>
-                    </>
-                  )}
+          <div id="postsList">
+            {posts.length === 0 && !loading && (
+              <p>No {filter} posts available.</p>
+            )}
+            {posts.map((p) => (
+              <article className="post" key={p.id}>
+                <div className="post-header">
+                  <span>{p.title}</span>
+                  <span className="muted">{formatDate(p.created_at)}</span>
                 </div>
-              </div>
-            </article>
-          ))}
+                <div className="post-body">
+                  <div className="user">
+                    <div className="avatar">
+                      {p.author_username
+                        ? p.author_username.charAt(0).toUpperCase()
+                        : "U"}
+                    </div>
+                    <div className="user-info">
+                      <strong>{p.author_username}</strong>
+                      <span className="tag">{p.status}</span>
+                    </div>
+                  </div>
+                  <div className="body-text">{p.content}</div>
+                  <div className="actions">
+                    <span>👍 Helpful: {p.helpful_count}</span>
+                    {filter === "pending" && (
+                      <>
+                        <button onClick={() => handleAction(p.id, "approve")}>
+                          ✅ Approve
+                        </button>
+                        <button onClick={() => handleAction(p.id, "reject")}>
+                          ❌ Reject
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
         </>
       )}
     </div>
