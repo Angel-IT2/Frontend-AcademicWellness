@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./TwoWeekPlanner.css";
+import { useCallback } from "react";
+import { API_URL } from "../apiComponents/api-base-url";
+
 
 const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -18,8 +21,7 @@ const helpSteps = [
 ];
 
 const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
-  const tasks = propTasks;
-  const setTasksSafe = propSetTasks || (() => {});
+  const [tasks, setTasks] = useState([]);
 
   const [activeDate, setActiveDate] = useState(null);
   const [editingTaskId, setEditingTaskId] = useState(null);
@@ -29,15 +31,17 @@ const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
   const [descriptionStyle, setDescriptionStyle] = useState(null);
   const [activeTaskId, setActiveTaskId] = useState(null);
 
+  // ---------------- BACKEND CONNECTION ----------------
+
   const modalRef = useRef();
   const today = new Date();
 
-  const formatDate = (date) => {
-    const d = new Date(date);
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${d.getFullYear()}-${month}-${day}`;
-  };
+  const formatDate = useCallback((date) => {
+  const d = new Date(date);
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
+}, []);
 
   const todayStr = formatDate(today);
   const firstDayOfWeek = new Date(today);
@@ -49,6 +53,40 @@ const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
     return d;
   });
 
+
+const fetchTasks = useCallback(async () => {
+  if (!daysArray || daysArray.length === 0) return;
+
+  const startStr = formatDate(daysArray[0]);
+  const endStr = formatDate(daysArray[daysArray.length - 1]);
+
+  try {
+    const res = await fetch(`${API_URL}/api/planner/tasks/?start=${startStr}&end=${endStr}`);
+    if (!res.ok) throw new Error("Failed to fetch tasks");
+    const data = await res.json();
+
+    const formatted = data.map((t) => ({
+      id: t.id,
+      date: t.date,
+      text: t.title,
+      description: t.description || "",
+      priority: t.priority || "medium",
+    }));
+    setTasks(formatted);
+  } catch (err) {
+    console.error("Error fetching tasks:", err);
+  }
+}, [daysArray, setTasks, formatDate]);
+
+
+
+useEffect(() => {
+  fetchTasks();
+}, [fetchTasks]);
+
+
+  
+
   const monthName = today.toLocaleString(undefined, { month: "long" }).toUpperCase();
 
   // ---------------- TASK HANDLERS ----------------
@@ -58,25 +96,58 @@ const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
     setFormData({ text: "", priority: "medium", description: "" });
   };
 
-  const saveTask = () => {
-    if (!formData.text || !activeDate) return;
-    if (editingTaskId) {
-      setTasksSafe((prev) =>
-        prev.map((task) => (task.id === editingTaskId ? { ...task, ...formData } : task))
-      );
-    } else {
-      setTasksSafe((prev) => [...prev, { id: Date.now(), date: activeDate, ...formData }]);
-    }
-    setFormData({ text: "", priority: "medium", description: "" });
-    setActiveDate(null);
-    setEditingTaskId(null);
+  const saveTask = async () => {
+  if (!formData.text || !activeDate) return;
+
+  const taskData = {
+    date: activeDate,
+    title: formData.text,
+    description: formData.description,
+    priority: formData.priority,
+    allow_reminders: true,
   };
 
-  const deleteTask = (id) => {
-    setTasksSafe((prev) => prev.filter((t) => t.id !== id));
-    setActiveDate(null);
-    setEditingTaskId(null);
-  };
+  try {
+    if (editingTaskId) {
+      await fetch(`${API_URL}/api/planner/tasks/${editingTaskId}/`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(taskData),
+      });
+    } else {
+      await fetch(`${API_URL}/api/planner/tasks/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(taskData),
+      });
+    }
+    // Refetch tasks after save
+    await fetchTasks();
+  } catch (err) {
+    console.error("Error saving task:", err);
+  }
+
+  setFormData({ text: "", priority: "medium", description: "" });
+  setActiveDate(null);
+  setEditingTaskId(null);
+  setActiveTaskId(null);
+};
+
+
+  const deleteTask = async (id) => {
+  try {
+    await fetch(`${API_URL}/api/planner/tasks/${id}/`, { method: "DELETE" });
+    // Refetch tasks after delete
+    await fetchTasks();
+  } catch (err) {
+    console.error("Error deleting task:", err);
+  }
+
+  setActiveDate(null);
+  setEditingTaskId(null);
+  setActiveTaskId(null);
+};
+
 
   const startEditingTask = (task) => {
     setEditingTaskId(task.id);
