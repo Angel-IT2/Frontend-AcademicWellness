@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./WhatstheDifference_style.css";
 
 const WhatsTheDifference = () => {
-  // ✅ Demo posts (stay even with backend)
+  // ✅ Demo fallback posts (always available)
   const demoPosts = [
     {
       id: "demo-1",
@@ -49,11 +49,11 @@ const WhatsTheDifference = () => {
   const [replying, setReplying] = useState(null);
   const [replyText, setReplyText] = useState("");
 
-  // ✅ User data from localStorage
+  // ✅ User info
   const userType = localStorage.getItem("student_type");
   const token = localStorage.getItem("access");
 
-  // ✅ Format date
+  // ✅ Format readable date
   const formatDate = (dateString) => {
     const d = new Date(dateString);
     const now = new Date();
@@ -69,37 +69,52 @@ const WhatsTheDifference = () => {
   // ✅ Fetch backend posts
   useEffect(() => {
     const fetchPosts = async () => {
+      if (!token) {
+        setError("No valid token found. Showing demo content.");
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await fetch(
           "https://backend-academicwellness.onrender.com/api/wtd/posts/",
           {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
+
+        if (res.status === 401) {
+          throw new Error("Your session has expired. Please log in again.");
+        }
+
         const data = await res.json();
+
         if (res.ok && Array.isArray(data)) {
-          // Merge backend + demo posts
           const merged = [...data, ...demoPosts];
           setPosts(merged);
         } else {
-          setPosts(demoPosts); // fallback
+          setPosts(demoPosts);
+          setError("Could not load posts from backend.");
         }
       } catch (err) {
         console.error("Error fetching posts:", err);
-        setPosts(demoPosts); // fallback on error
-        setError("Couldn't load backend posts. Showing demo content instead.");
+        setError(err.message || "Failed to load backend posts.");
+        setPosts(demoPosts);
       } finally {
         setLoading(false);
       }
     };
+
     fetchPosts();
   }, [token]);
 
-  // ✅ Handle form input
+  // ✅ Handle input change
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // ✅ Submit new post (Senior only)
+  // ✅ Add new post (Seniors only)
   const addPost = async () => {
     if (userType !== "Senior") {
       alert("Only senior students can create posts.");
@@ -134,9 +149,10 @@ const WhatsTheDifference = () => {
         setFormData({ title: "", content: "" });
         setShowForm(false);
       } else {
-        alert(data.detail || data.message || "Failed to submit post.");
+        alert(data.detail || "Failed to submit post.");
       }
     } catch (err) {
+      console.error("Network error while submitting post:", err);
       alert("Network error while submitting post.");
     }
   };
@@ -148,7 +164,6 @@ const WhatsTheDifference = () => {
       return;
     }
 
-    // Demo posts — local update only
     if (isDemo) {
       setPosts((prev) =>
         prev.map((p) =>
@@ -158,13 +173,14 @@ const WhatsTheDifference = () => {
       return;
     }
 
-    // Real posts — backend call
     try {
       const res = await fetch(
         `https://backend-academicwellness.onrender.com/api/wtd/posts/${postId}/helpful/`,
         {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -177,14 +193,15 @@ const WhatsTheDifference = () => {
           )
         );
       } else {
-        alert(data.detail || "Could not mark helpful.");
+        alert(data.detail || "Could not mark post as helpful.");
       }
     } catch (err) {
+      console.error("Network error while marking helpful:", err);
       alert("Network error while marking helpful.");
     }
   };
 
-  // ✅ Submit reply (local only)
+  // ✅ Reply locally (no backend yet)
   const submitReply = (idx) => {
     if (!replyText.trim()) {
       alert("Please write something before submitting.");
@@ -218,7 +235,7 @@ const WhatsTheDifference = () => {
         Real insights from your seniors: High School vs University
       </div>
 
-      {/* Toggle form */}
+      {/* Senior post form toggle */}
       {userType === "Senior" && (
         <button id="toggleFormBtn" onClick={() => setShowForm(!showForm)}>
           {showForm ? "− Hide Form" : "+ New Post"}
@@ -230,11 +247,11 @@ const WhatsTheDifference = () => {
           <h2>Submit a New Insight (Senior Students)</h2>
           <input
             type="text"
-            required
             name="title"
             placeholder="Post title"
             value={formData.title}
             onChange={handleChange}
+            required
           />
           <textarea
             name="content"
@@ -246,7 +263,7 @@ const WhatsTheDifference = () => {
         </div>
       )}
 
-      {/* Sorting */}
+      {/* Sort control */}
       <div className="sort-controls">
         <label htmlFor="sortSelect">Sort by: </label>
         <select
@@ -259,7 +276,7 @@ const WhatsTheDifference = () => {
         </select>
       </div>
 
-      {/* Posts */}
+      {/* Posts list */}
       <div id="postsList">
         {sortedPosts.map((post, idx) => (
           <article className="post" key={post.id || idx}>
@@ -306,9 +323,7 @@ const WhatsTheDifference = () => {
                     onChange={(e) => setReplyText(e.target.value)}
                   />
                   <div className="submit-row">
-                    <button onClick={() => submitReply(idx)}>
-                      Submit reply
-                    </button>
+                    <button onClick={() => submitReply(idx)}>Submit reply</button>
                   </div>
                 </div>
               )}
@@ -326,6 +341,8 @@ const WhatsTheDifference = () => {
           </article>
         ))}
       </div>
+
+      {error && <p className="error-msg">{error}</p>}
     </div>
   );
 };
