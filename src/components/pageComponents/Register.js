@@ -10,7 +10,7 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [studentType, setStudentType] = useState("First-year");
+  const [studentType, setStudentType] = useState("First-year"); // default role
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ function Register() {
             email: email,
             password: password,
             confirm_password: confirmPassword,
-            student_type: studentType, // Matches backend types exactly
+            student_type: studentType, // exact value matches backend roles
           }),
         }
       );
