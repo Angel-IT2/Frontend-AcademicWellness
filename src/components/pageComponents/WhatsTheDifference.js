@@ -1,107 +1,94 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./WhatstheDifference_style.css";
 
 const API_BASE = "https://backend-academicwellness.onrender.com/api";
 
-// Helper: Token management
-const saveTokens = (access, refresh) => {
-  localStorage.setItem("access_token", access);
-  localStorage.setItem("refresh_token", refresh);
-};
-const getAccess = () => localStorage.getItem("access_token");
-const getRefresh = () => localStorage.getItem("refresh_token");
-
 const WhatsTheDifference = () => {
   const [user, setUser] = useState(null);
+  const [role, setRole] = useState("");
   const [posts, setPosts] = useState([]);
   const [formData, setFormData] = useState({ title: "", content: "" });
-  const [sortBy, setSortBy] = useState("helpful");
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState("");
-  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [sortBy, setSortBy] = useState("helpful");
 
-  // ========== AUTO TOKEN REFRESH ==========
-  const refreshAccessToken = async () => {
-    const refresh = getRefresh();
-    if (!refresh) return;
+  // Load user info from localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
+    if (storedUser && token) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      setRole(parsedUser.student_type);
+      fetchPosts(parsedUser.student_type, token);
+    }
+  }, []);
+
+  // Auto refresh token every 9 minutes
+  useEffect(() => {
+    const interval = setInterval(refreshToken, 9 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const refreshToken = async () => {
     try {
+      const refresh = localStorage.getItem("refresh_token");
+      if (!refresh) return;
       const res = await fetch(`${API_BASE}/auth/refresh/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh })
+        body: JSON.stringify({ refresh }),
       });
       const data = await res.json();
       if (res.ok && data.access) {
-        localStorage.setItem("access_token", data.access);
+        localStorage.setItem("token", data.access);
       }
     } catch (err) {
       console.error("Token refresh failed:", err);
     }
   };
 
-  // Refresh every 9 minutes
-  useEffect(() => {
-    const interval = setInterval(refreshAccessToken, 9 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // ========== LOGIN ==========
-  const handleLogin = async () => {
-    if (!loginData.email || !loginData.password) return alert("Enter credentials.");
+  // Fetch posts (approved for First-year/Senior)
+  const fetchPosts = async (role, token) => {
     try {
-      const res = await fetch(`${API_BASE}/auth/login/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(loginData)
-      });
-      const data = await res.json();
-      if (res.ok) {
-        saveTokens(data.access, data.refresh);
-        setUser(loginData.email);
-        fetchPosts();
-        alert("Logged in successfully!");
-      } else alert("Login failed.");
-    } catch (err) {
-      console.error("Login error:", err);
-    }
-  };
-
-  // ========== FETCH POSTS ==========
-  const fetchPosts = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/wtd/posts/`, {
-        headers: { Authorization: `Bearer ${getAccess()}` }
+      let url = `${API_BASE}/wtd/posts/`;
+      if (role === "Senior" || role === "First-year") url += "?status=approved";
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (Array.isArray(data)) setPosts(data);
     } catch (err) {
-      console.error("Fetch posts error:", err);
+      console.error("Failed to fetch posts:", err);
     }
   };
 
-  useEffect(() => {
-    if (getAccess()) fetchPosts();
-  }, []);
+  // Handle form changes
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // ========== CREATE POST ==========
+  // Submit new post (Senior only)
   const handleSubmit = async () => {
-    if (!formData.title || !formData.content) return alert("Please fill all fields.");
+    if (!formData.title || !formData.content)
+      return alert("Please fill in all fields.");
+    const token = localStorage.getItem("token");
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/wtd/posts/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${getAccess()}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
       const data = await res.json();
       if (res.ok) {
-        alert("Post submitted (pending approval).");
-        setPosts([data, ...posts]);
+        alert("Post submitted successfully (pending approval).");
         setFormData({ title: "", content: "" });
-      } else alert("Error: " + JSON.stringify(data));
+        fetchPosts(role, token);
+      } else {
+        alert("Error submitting post.");
+      }
     } catch (err) {
       console.error("Submit error:", err);
     } finally {
@@ -109,12 +96,13 @@ const WhatsTheDifference = () => {
     }
   };
 
-  // ========== MARK HELPFUL ==========
+  // Mark Helpful (First-year only)
   const markHelpful = async (id) => {
+    const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${API_BASE}/wtd/posts/${id}/helpful/`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${getAccess()}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (!data.already_marked) {
@@ -124,21 +112,22 @@ const WhatsTheDifference = () => {
           )
         );
       } else {
-        alert("You already marked this post.");
+        alert("You already marked this post as helpful.");
       }
     } catch (err) {
       console.error("Helpful error:", err);
     }
   };
 
-  // Sort
-  const sortedPosts = [...posts].sort((a, b) =>
-    sortBy === "helpful"
-      ? b.helpful_count - a.helpful_count
-      : new Date(b.created_at) - new Date(a.created_at)
-  );
-
+  // Format date
   const formatDate = (iso) => new Date(iso).toLocaleString();
+
+  // Sort posts
+  const sortedPosts = [...posts].sort((a, b) => {
+    if (sortBy === "helpful") return b.helpful_count - a.helpful_count;
+    if (sortBy === "newest") return new Date(b.created_at) - new Date(a.created_at);
+    return 0;
+  });
 
   return (
     <div className="container">
@@ -148,54 +137,29 @@ const WhatsTheDifference = () => {
       </div>
 
       {!user ? (
-        <div className="new-post">
-          <h2>Login to Access Insights</h2>
-          <select value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="">Select Role</option>
-            <option value="firstyear">First-year</option>
-            <option value="senior">Senior</option>
-          </select>
-          <input
-            type="email"
-            placeholder="Email"
-            onChange={(e) =>
-              setLoginData({ ...loginData, email: e.target.value })
-            }
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            onChange={(e) =>
-              setLoginData({ ...loginData, password: e.target.value })
-            }
-          />
-          <button onClick={handleLogin}>Login</button>
-        </div>
+        <p>Please log in to see posts.</p>
       ) : (
         <>
           <p>
-            Logged in as <strong>{user}</strong> ({role})
+            Logged in as <strong>{user.full_name}</strong> ({role})
           </p>
 
-          {role === "senior" && (
+          {/* Senior-only form */}
+          {role === "Senior" && (
             <div className="new-post">
-              <h2>Submit a new insight</h2>
+              <h2>Share Your Insight</h2>
               <input
                 type="text"
                 name="title"
                 placeholder="Post title"
                 value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
+                onChange={handleChange}
               />
               <textarea
                 name="content"
-                placeholder="Share your insight..."
+                placeholder="Share your tip..."
                 value={formData.content}
-                onChange={(e) =>
-                  setFormData({ ...formData, content: e.target.value })
-                }
+                onChange={handleChange}
               />
               <button onClick={handleSubmit} disabled={loading}>
                 {loading ? "Submitting..." : "Submit Post"}
@@ -203,9 +167,11 @@ const WhatsTheDifference = () => {
             </div>
           )}
 
+          {/* Sorting */}
           <div className="sort-controls">
-            <label>Sort by:</label>
+            <label htmlFor="sortSelect">Sort by: </label>
             <select
+              id="sortSelect"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
             >
@@ -214,7 +180,9 @@ const WhatsTheDifference = () => {
             </select>
           </div>
 
+          {/* Posts */}
           <div id="postsList">
+            {sortedPosts.length === 0 && <p>No posts available.</p>}
             {sortedPosts.map((p) => (
               <article className="post" key={p.id}>
                 <div className="post-header">
@@ -222,14 +190,25 @@ const WhatsTheDifference = () => {
                   <span className="muted">{formatDate(p.created_at)}</span>
                 </div>
                 <div className="post-body">
-                  <p>{p.content}</p>
-                  <div className="actions">
-                    {role === "firstyear" && p.status === "approved" && (
+                  <div className="user">
+                    <div className="avatar">
+                      {p.author_username
+                        ? p.author_username.charAt(0).toUpperCase()
+                        : "U"}
+                    </div>
+                    <div className="user-info">
+                      <strong>{p.author_username}</strong>{" "}
+                      <span className="tag">{p.status}</span>
+                    </div>
+                  </div>
+                  <div className="body-text">{p.content}</div>
+                  {role === "First-year" && p.status === "approved" && (
+                    <div className="actions">
                       <button onClick={() => markHelpful(p.id)}>
                         👍 Helpful ({p.helpful_count})
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </article>
             ))}
