@@ -1,131 +1,100 @@
-import React, { useEffect, useState } from "react";
-import "./WhatstheDifference_style.css";
+import React, { useState, useEffect } from "react";
+import "./WhatstheDifference_style.css"; 
 
-const API_BASE = "https://backend-academicwellness.onrender.com/api";
+const demoPosts = [
+  {
+    title: "Assessments are heavier",
+    author: "Sarah J",
+    content: "Tests, Assignments and Exams carry more weight each. Don't expect to do the same things you did in high school.",
+    helpful: 5,
+    timestamp: new Date("2025-08-30T12:00:00"),
+    replies: [],
+  },
+  {
+    title: "Lectures move faster",
+    author: "Michael K",
+    content: "In university, lecturers won’t always slow down for everyone. It’s important to review slides before and after class.",
+    helpful: 3,
+    timestamp: new Date("2025-09-05T12:00:00"),
+    replies: [],
+  },
+  {
+    title: "You must manage your own time",
+    author: "Lerato M",
+    content: "Nobody will remind you to do your work. Time management becomes a crucial skill if you want to keep up.",
+    helpful: 7,
+    timestamp: new Date("2025-09-08T12:00:00"),
+    replies: [],
+  },
+];
 
 const WhatsTheDifference = () => {
-  const [user, setUser] = useState(null);
-  const [role, setRole] = useState("");
-  const [posts, setPosts] = useState([]);
-  const [formData, setFormData] = useState({ title: "", content: "" });
-  const [loading, setLoading] = useState(false);
+  const user = JSON.parse(localStorage.getItem("user")); // get logged-in user
+  const [posts, setPosts] = useState(demoPosts);
+  const [pendingPosts, setPendingPosts] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({ title: "", author: "", content: "" });
   const [sortBy, setSortBy] = useState("helpful");
+  const [replying, setReplying] = useState(null);
+  const [replyText, setReplyText] = useState("");
 
-  // Load user info from localStorage
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
-    if (storedUser && token) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      setRole(parsedUser.student_type);
-      fetchPosts(parsedUser.student_type, token);
-    }
-  }, []);
-
-  // Auto refresh token every 9 minutes
-  useEffect(() => {
-    const interval = setInterval(refreshToken, 9 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const refreshToken = async () => {
-    try {
-      const refresh = localStorage.getItem("refresh_token");
-      if (!refresh) return;
-      const res = await fetch(`${API_BASE}/auth/refresh/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh }),
-      });
-      const data = await res.json();
-      if (res.ok && data.access) {
-        localStorage.setItem("token", data.access);
-      }
-    } catch (err) {
-      console.error("Token refresh failed:", err);
-    }
+  const formatDate = (d) => {
+    const now = new Date();
+    const diffMs = now - d;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays/7)} weeks ago`;
+    return d.toLocaleDateString();
   };
 
-  // Fetch posts (approved for First-year/Senior)
-  const fetchPosts = async (role, token) => {
-    try {
-      let url = `${API_BASE}/wtd/posts/`;
-      if (role === "Senior" || role === "First-year") url += "?status=approved";
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (Array.isArray(data)) setPosts(data);
-    } catch (err) {
-      console.error("Failed to fetch posts:", err);
-    }
-  };
-
-  // Handle form changes
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // Submit new post (Senior only)
-  const handleSubmit = async () => {
-    if (!formData.title || !formData.content)
-      return alert("Please fill in all fields.");
-    const token = localStorage.getItem("token");
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/wtd/posts/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        alert("Post submitted successfully (pending approval).");
-        setFormData({ title: "", content: "" });
-        fetchPosts(role, token);
-      } else {
-        alert("Error submitting post.");
-      }
-    } catch (err) {
-      console.error("Submit error:", err);
-    } finally {
-      setLoading(false);
+  const addPost = () => {
+    if (!formData.title || !formData.author || !formData.content) {
+      alert("Please fill out all fields.");
+      return;
     }
+    const newPost = {
+      ...formData,
+      helpful: 0,
+      timestamp: new Date(),
+      replies: [],
+    };
+    setPendingPosts([newPost, ...pendingPosts]);
+    setFormData({ title: "", author: "", content: "" });
+    setShowForm(false);
   };
 
-  // Mark Helpful (First-year only)
-  const markHelpful = async (id) => {
-    const token = localStorage.getItem("token");
-    try {
-      const res = await fetch(`${API_BASE}/wtd/posts/${id}/helpful/`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (!data.already_marked) {
-        setPosts((prev) =>
-          prev.map((p) =>
-            p.id === id ? { ...p, helpful_count: data.helpful_count } : p
-          )
-        );
-      } else {
-        alert("You already marked this post as helpful.");
-      }
-    } catch (err) {
-      console.error("Helpful error:", err);
-    }
+  const approvePost = (idx) => {
+    const approved = pendingPosts[idx];
+    setPosts([approved, ...posts]);
+    setPendingPosts(pendingPosts.filter((_, i) => i !== idx));
   };
 
-  // Format date
-  const formatDate = (iso) => new Date(iso).toLocaleString();
+  const increaseHelpful = (idx) => {
+    const newPosts = [...posts];
+    newPosts[idx].helpful += 1;
+    setPosts(newPosts);
+  };
 
-  // Sort posts
+  const submitReply = (idx) => {
+    if (!replyText.trim()) {
+      alert("Please write something before submitting.");
+      return;
+    }
+    const newPosts = [...posts];
+    newPosts[idx].replies.push({ text: replyText, author: "You" });
+    setPosts(newPosts);
+    setReplying(null);
+    setReplyText("");
+  };
+
   const sortedPosts = [...posts].sort((a, b) => {
-    if (sortBy === "helpful") return b.helpful_count - a.helpful_count;
-    if (sortBy === "newest") return new Date(b.created_at) - new Date(a.created_at);
+    if (sortBy === "helpful") return b.helpful - a.helpful;
+    if (sortBy === "newest") return b.timestamp - a.timestamp;
     return 0;
   });
 
@@ -136,85 +105,121 @@ const WhatsTheDifference = () => {
         Real Insights from your seniors: High school vs University
       </div>
 
-      {!user ? (
-        <p>Please log in to see posts.</p>
-      ) : (
+      {/* Only senior students can post */}
+      {user?.student_type === "Moderator" || user?.student_type === "Senior" ? (
         <>
-          <p>
-            Logged in as <strong>{user.full_name}</strong> ({role})
-          </p>
+          <button id="toggleFormBtn" onClick={() => setShowForm(!showForm)}>
+            {showForm ? "− Hide Form" : "+ New Post"}
+          </button>
 
-          {/* Senior-only form */}
-          {role === "Senior" && (
+          {showForm && (
             <div className="new-post">
-              <h2>Share Your Insight</h2>
+              <h2>Submit a new insight</h2>
               <input
                 type="text"
                 name="title"
                 placeholder="Post title"
                 value={formData.title}
                 onChange={handleChange}
+                required
+              />
+              <input
+                type="text"
+                name="author"
+                placeholder="Your name"
+                value={formData.author}
+                onChange={handleChange}
               />
               <textarea
                 name="content"
-                placeholder="Share your tip..."
+                placeholder="Share your insight..."
                 value={formData.content}
                 onChange={handleChange}
               />
-              <button onClick={handleSubmit} disabled={loading}>
-                {loading ? "Submitting..." : "Submit Post"}
-              </button>
+              <button onClick={addPost}>Submit Post</button>
             </div>
           )}
-
-          {/* Sorting */}
-          <div className="sort-controls">
-            <label htmlFor="sortSelect">Sort by: </label>
-            <select
-              id="sortSelect"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-            >
-              <option value="helpful">Most Helpful</option>
-              <option value="newest">Newest</option>
-            </select>
-          </div>
-
-          {/* Posts */}
-          <div id="postsList">
-            {sortedPosts.length === 0 && <p>No posts available.</p>}
-            {sortedPosts.map((p) => (
-              <article className="post" key={p.id}>
-                <div className="post-header">
-                  <span>{p.title}</span>
-                  <span className="muted">{formatDate(p.created_at)}</span>
-                </div>
-                <div className="post-body">
-                  <div className="user">
-                    <div className="avatar">
-                      {p.author_username
-                        ? p.author_username.charAt(0).toUpperCase()
-                        : "U"}
-                    </div>
-                    <div className="user-info">
-                      <strong>{p.author_username}</strong>{" "}
-                      <span className="tag">{p.status}</span>
-                    </div>
-                  </div>
-                  <div className="body-text">{p.content}</div>
-                  {role === "First-year" && p.status === "approved" && (
-                    <div className="actions">
-                      <button onClick={() => markHelpful(p.id)}>
-                        👍 Helpful ({p.helpful_count})
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
         </>
+      ) : null}
+
+      {pendingPosts.length > 0 && (
+        <div className="pending-section">
+          <h3>Pending Approval</h3>
+          {pendingPosts.map((post, idx) => (
+            <div className="pending-post" key={idx}>
+              <span>
+                <strong>{post.title}</strong> by {post.author}
+              </span>
+              <button onClick={() => approvePost(idx)}>Approve</button>
+            </div>
+          ))}
+        </div>
       )}
+
+      {/* Sorting */}
+      <div className="sort-controls">
+        <label htmlFor="sortSelect">Sort by: </label>
+        <select
+          id="sortSelect"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+        >
+          <option value="helpful">Most Helpful</option>
+          <option value="newest">Newest</option>
+        </select>
+      </div>
+
+      {/* Posts */}
+      <div id="postsList">
+        {sortedPosts.map((post, idx) => (
+          <article className="post" key={idx}>
+            <div className="post-header">
+              <span>{post.title}</span>
+              <span className="muted">{formatDate(post.timestamp)}</span>
+            </div>
+            <div className="post-body">
+              <div className="user">
+                <div className="avatar">{post.author.charAt(0).toUpperCase()}</div>
+                <div className="user-info">
+                  <strong>{post.author}</strong>{" "}
+                  <span className="tag">{user?.student_type || "Student"}</span>
+                </div>
+              </div>
+
+              <div className="body-text">{post.content}</div>
+
+              <div className="actions">
+                <button onClick={() => increaseHelpful(idx)}>👍 Helpful ({post.helpful})</button>
+                <button>Report</button>
+                <button className="reply-btn" onClick={() => setReplying(replying === idx ? null : idx)}>Reply</button>
+              </div>
+
+              {replying === idx && (
+                <div className="quick-reply">
+                  <textarea
+                    placeholder="Reply to this post..."
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                  />
+                  <div className="submit-row">
+                    <button onClick={() => submitReply(idx)}>Submit reply</button>
+                  </div>
+                </div>
+              )}
+
+              {post.replies.length > 0 && (
+                <div className="replies">
+                  {post.replies.map((r, i) => (
+                    <div className="reply" key={i}>
+                      <strong>{r.author}:</strong> {r.text}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
     </div>
   );
 };
