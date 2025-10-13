@@ -1,50 +1,65 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./WhatstheDifference_style.css";
 
 const API_BASE = "https://backend-academicwellness.onrender.com/api";
 
+const saveTokens = (access, refresh) => {
+  localStorage.setItem("mod_access_token", access);
+  localStorage.setItem("mod_refresh_token", refresh);
+};
+const getAccess = () => localStorage.getItem("mod_access_token");
+const getRefresh = () => localStorage.getItem("mod_refresh_token");
+
 const ModeratorDifference = () => {
   const [loginData, setLoginData] = useState({ username: "", password: "" });
   const [loggedIn, setLoggedIn] = useState(false);
-  const [accessToken, setAccessToken] = useState("");
   const [posts, setPosts] = useState([]);
   const [filter, setFilter] = useState("pending");
   const [loading, setLoading] = useState(false);
 
-  // Helper: Save token
-  const saveTokens = (access, refresh) => {
-    localStorage.setItem("access_token", access);
-    localStorage.setItem("refresh_token", refresh);
+  // ========== AUTO TOKEN REFRESH ==========
+  const refreshAccessToken = async () => {
+    const refresh = getRefresh();
+    if (!refresh) return;
+    try {
+      const res = await fetch(`${API_BASE}/auth/refresh/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh })
+      });
+      const data = await res.json();
+      if (res.ok && data.access) {
+        localStorage.setItem("mod_access_token", data.access);
+      }
+    } catch (err) {
+      console.error("Token refresh failed:", err);
+    }
   };
 
-  // =============================
-  // 🔐 LOGIN (Moderator)
-  // =============================
+  // Refresh every 9 minutes
+  useEffect(() => {
+    const interval = setInterval(refreshAccessToken, 9 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // ========== LOGIN ==========
   const handleLogin = async () => {
-    if (!loginData.username || !loginData.password) {
-      alert("Please enter your username and password.");
-      return;
-    }
+    if (!loginData.username || !loginData.password)
+      return alert("Enter credentials.");
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/auth/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: loginData.username,
-          password: loginData.password
-        })
+        body: JSON.stringify(loginData)
       });
       const data = await res.json();
       if (res.ok) {
         saveTokens(data.access, data.refresh);
-        setAccessToken(data.access);
         setLoggedIn(true);
         alert("Moderator logged in successfully!");
-        fetchPosts("pending", data.access);
-      } else {
-        alert("Login failed: " + JSON.stringify(data));
-      }
+        fetchPosts("pending");
+      } else alert("Login failed.");
     } catch (err) {
       console.error("Login error:", err);
     } finally {
@@ -52,14 +67,12 @@ const ModeratorDifference = () => {
     }
   };
 
-  // =============================
-  // 📦 FETCH POSTS BY STATUS
-  // =============================
-  const fetchPosts = async (status = "pending", token = accessToken) => {
+  // ========== FETCH POSTS ==========
+  const fetchPosts = async (status = "pending") => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/wtd/posts/?status=${status}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${getAccess()}` }
       });
       const data = await res.json();
       if (Array.isArray(data)) setPosts(data);
@@ -70,43 +83,30 @@ const ModeratorDifference = () => {
     }
   };
 
-  // =============================
-  // ✅ APPROVE / ❌ REJECT
-  // =============================
+  // ========== APPROVE/REJECT ==========
   const handleAction = async (id, action) => {
     try {
       const res = await fetch(`${API_BASE}/wtd/posts/${id}/${action}/`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${accessToken}` }
+        headers: { Authorization: `Bearer ${getAccess()}` }
       });
       const data = await res.json();
       if (res.ok) {
         alert(`Post ${action}ed successfully.`);
         fetchPosts(filter);
-      } else {
-        alert("Action failed: " + JSON.stringify(data));
-      }
+      } else alert("Action failed.");
     } catch (err) {
       console.error("Moderator action error:", err);
     }
   };
 
-  // =============================
-  // 🧩 DATE FORMATTER
-  // =============================
-  const formatDate = (iso) => {
-    const d = new Date(iso);
-    return d.toLocaleString();
-  };
+  const formatDate = (iso) => new Date(iso).toLocaleString();
 
-  // =============================
-  // UI RENDER
-  // =============================
   return (
     <div className="container">
       <h4>Moderator – WhatsTheDifference</h4>
       <div className="wdifference-caption">
-        Manage Insights submitted by Senior Students
+        Manage Insights from Senior Students
       </div>
 
       {!loggedIn ? (
@@ -114,7 +114,6 @@ const ModeratorDifference = () => {
           <h2>Moderator Login</h2>
           <input
             type="text"
-            name="username"
             placeholder="Username (e.g. Mia)"
             onChange={(e) =>
               setLoginData({ ...loginData, username: e.target.value })
@@ -122,7 +121,6 @@ const ModeratorDifference = () => {
           />
           <input
             type="password"
-            name="password"
             placeholder="Password"
             onChange={(e) =>
               setLoginData({ ...loginData, password: e.target.value })
@@ -152,58 +150,34 @@ const ModeratorDifference = () => {
 
           {loading && <p>Loading posts...</p>}
 
-          <div id="postsList">
-            {posts.length === 0 && !loading && (
-              <p>No {filter} posts available.</p>
-            )}
-
-            {posts.map((post) => (
-              <article className="post" key={post.id}>
-                <div className="post-header">
-                  <span>{post.title}</span>
-                  <span className="muted">{formatDate(post.created_at)}</span>
+          {posts.map((post) => (
+            <article className="post" key={post.id}>
+              <div className="post-header">
+                <span>{post.title}</span>
+                <span className="muted">{formatDate(post.created_at)}</span>
+              </div>
+              <div className="post-body">
+                <p>{post.content}</p>
+                <p>
+                  <strong>By:</strong> {post.author_username} |{" "}
+                  <strong>Status:</strong> {post.status}
+                </p>
+                <div className="actions">
+                  <span>👍 Helpful: {post.helpful_count}</span>
+                  {filter === "pending" && (
+                    <>
+                      <button onClick={() => handleAction(post.id, "approve")}>
+                        ✅ Approve
+                      </button>
+                      <button onClick={() => handleAction(post.id, "reject")}>
+                        ❌ Reject
+                      </button>
+                    </>
+                  )}
                 </div>
-
-                <div className="post-body">
-                  <div className="user">
-                    <div className="avatar">
-                      {post.author_username
-                        ? post.author_username.charAt(0).toUpperCase()
-                        : "U"}
-                    </div>
-                    <div className="user-info">
-                      <strong>{post.author_username}</strong>{" "}
-                      <span className="tag">
-                        {post.status.charAt(0).toUpperCase() +
-                          post.status.slice(1)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="body-text">{post.content}</div>
-
-                  <div className="actions">
-                    <span>👍 Helpful: {post.helpful_count}</span>
-
-                    {filter === "pending" && (
-                      <>
-                        <button
-                          onClick={() => handleAction(post.id, "approve")}
-                        >
-                          ✅ Approve
-                        </button>
-                        <button
-                          onClick={() => handleAction(post.id, "reject")}
-                        >
-                          ❌ Reject
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+              </div>
+            </article>
+          ))}
         </>
       )}
     </div>
