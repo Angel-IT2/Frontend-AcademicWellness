@@ -23,88 +23,48 @@ function Login() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            identifier: email, // backend expects 'identifier'
-            password: password,
-          }),
+          body: JSON.stringify({ identifier: email, password }),
         }
       );
-
       const data = await response.json();
       setLoading(false);
 
       if (response.ok) {
-        if (!data.user) {
-          setError("Login failed: no user data returned.");
-          return;
-        }
-
-        // Save token and user info
-      localStorage.setItem("token", data.tokens.access);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-        // Success message
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
         alert("Login successful!");
-
-        // ✅ Redirect all users to dashboard
         navigate("/dashboard");
       } else {
-        // Backend error message
         setError(data.message || "Invalid email or password.");
       }
     } catch (err) {
-      console.error("Login error:", err);
+      console.error(err);
       setError("An error occurred while logging in. Please try again.");
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    // Placeholder for Google login
-    alert("Google login not implemented yet.");
-  };
+  const handleGoogleLogin = () => alert("Google login not implemented yet.");
 
   return (
     <div className="form-box" style={{ backgroundImage: `url(${bgImage})` }}>
       <Navbar />
       <form className="auth-form" onSubmit={handleLogin}>
         <h2>Login to UniPath</h2>
-
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-
+        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         {error && <div className="error-msg">{error}</div>}
-
         <button className="auth-btn" type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </button>
-
         <p className="auth-or">Or continue with</p>
-
         <div className="auth-social">
           <button type="button" className="social-btn google" onClick={handleGoogleLogin}>
             <FaGoogle /> Google
           </button>
         </div>
-
         <p className="auth-footer">
-          Don’t have an account?{" "}
-          <Link to="/register" className="link">
-            Register
-          </Link>
+          Don’t have an account? <Link to="/register" className="link">Register</Link>
         </p>
       </form>
     </div>
