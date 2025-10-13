@@ -40,8 +40,8 @@ function Login() {
         }
 
         // Save token and user info
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("token", data.tokens.access);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
         // Success message
         alert("Login successful!");

@@ -1,8 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import "./TwoWeekPlanner.css";
-import { useCallback } from "react";
-import { API_URL } from "../apiComponents/api-base-url";
-
+export const API_URL = 'https://backend-academicwellness.onrender.com';
 
 const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -20,9 +18,8 @@ const helpSteps = [
   { id: "legend-low", text: "Low priority tasks are marked in green." },
 ];
 
-const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
+const TwoWeekPlanner = () => {
   const [tasks, setTasks] = useState([]);
-
   const [activeDate, setActiveDate] = useState(null);
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
@@ -31,17 +28,15 @@ const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
   const [descriptionStyle, setDescriptionStyle] = useState(null);
   const [activeTaskId, setActiveTaskId] = useState(null);
 
-  // ---------------- BACKEND CONNECTION ----------------
-
   const modalRef = useRef();
   const today = new Date();
 
   const formatDate = useCallback((date) => {
-  const d = new Date(date);
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${month}-${day}`;
-}, []);
+    const d = new Date(date);
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${d.getFullYear()}-${month}-${day}`;
+  }, []);
 
   const todayStr = formatDate(today);
   const firstDayOfWeek = new Date(today);
@@ -53,41 +48,63 @@ const TwoWeekPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
     return d;
   });
 
+  const monthName = today.toLocaleString(undefined, { month: "long" }).toUpperCase();
 
+  // ---------------- BACKEND FETCH ----------------
+  
+  // In the useEffect hook for fetching tasks
+// Put this right after your state declarations
 const fetchTasks = useCallback(async () => {
-  if (!daysArray || daysArray.length === 0) return;
+  const token = localStorage.getItem("token");
+  if (!token) {
+    console.log("No token found, user is not logged in.");
+    return;
+  }
 
-  const startStr = formatDate(daysArray[0]);
-  const endStr = formatDate(daysArray[daysArray.length - 1]);
+  // We can calculate startDate and endDate right here
+  const firstDay = new Date();
+  firstDay.setDate(new Date().getDate() - new Date().getDay());
+  
+  const lastDay = new Date(firstDay);
+  lastDay.setDate(firstDay.getDate() + 13);
+
+  const startStr = formatDate(firstDay);
+  const endStr = formatDate(lastDay);
 
   try {
-    const res = await fetch(`${API_URL}/api/planner/tasks/?start=${startStr}&end=${endStr}`);
-    if (!res.ok) throw new Error("Failed to fetch tasks");
-    const data = await res.json();
+    console.log("📡 Fetching tasks from backend...");
+    const response = await fetch(
+      `${API_URL}/api/planner/tasks/?start=${startStr}&end=${endStr}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      }
+    );
 
-    const formatted = data.map((t) => ({
-      id: t.id,
-      date: t.date,
-      text: t.title,
-      description: t.description || "",
-      priority: t.priority || "medium",
+    if (!response.ok) {
+      // It's helpful to see the error status
+      throw new Error(`Failed to fetch tasks. Status: ${response.status}`);
+    }
+    const data = await response.json();
+
+    const formatted = data.map((task) => ({
+      ...task,
+      text: task.title,
     }));
+
     setTasks(formatted);
+    console.log(`✅ Loaded ${formatted.length} tasks successfully.`);
   } catch (err) {
-    console.error("Error fetching tasks:", err);
+    console.error("❌ Error fetching tasks:", err);
   }
-}, [daysArray, setTasks, formatDate]);
+}, [formatDate]); // formatDate is a dependency from useCallback
 
-
-
+// Now, your useEffect hook becomes very simple and clean
 useEffect(() => {
   fetchTasks();
-}, [fetchTasks]);
-
-
-  
-
-  const monthName = today.toLocaleString(undefined, { month: "long" }).toUpperCase();
+}, [fetchTasks]); // This now correctly runs when the component mounts
 
   // ---------------- TASK HANDLERS ----------------
   const handleDateClick = (dateStr) => {
@@ -99,63 +116,118 @@ useEffect(() => {
   const saveTask = async () => {
   if (!formData.text || !activeDate) return;
 
-  const taskData = {
-    date: activeDate,
-    title: formData.text,
-    description: formData.description,
-    priority: formData.priority,
-    allow_reminders: true,
-  };
-
-  try {
-    if (editingTaskId) {
-      await fetch(`${API_URL}/api/planner/tasks/${editingTaskId}/`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(taskData),
-      });
-    } else {
-      await fetch(`${API_URL}/api/planner/tasks/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(taskData),
-      });
-    }
-    // Refetch tasks after save
-    await fetchTasks();
-  } catch (err) {
-    console.error("Error saving task:", err);
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("You must be logged in to save tasks.");
+    return;
   }
 
-  setFormData({ text: "", priority: "medium", description: "" });
-  setActiveDate(null);
-  setEditingTaskId(null);
-  setActiveTaskId(null);
+  try {
+    const method = editingTaskId ? "PUT" : "POST";
+    const url = editingTaskId
+      ? `${API_URL}/api/planner/tasks/${editingTaskId}/`
+      : `${API_URL}/api/planner/tasks/`;
+    
+    const response = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` 
+      },
+      body: JSON.stringify({
+        date: activeDate,
+        title: formData.text,
+        description: formData.description,
+        priority: formData.priority,
+        allow_reminders: true,
+      }),
+    });
+
+    if (!response.ok) {
+      const errMsg = await response.json();
+      throw new Error(errMsg.detail || "Failed to save task.");
+    }
+
+    // 1. Get the saved task back from the server response
+    const savedTask = await response.json();
+
+    // 2. Format it just like our other tasks (add the 'text' property)
+    const formattedTask = { ...savedTask, text: savedTask.title };
+
+    // 3. Update the state directly
+    setTasks(prevTasks => {
+      if (editingTaskId) {
+        // If we were editing, find and replace the task in the array
+        return prevTasks.map(task => 
+          task.id === editingTaskId ? formattedTask : task
+        );
+      } else {
+        // If we were adding a new task, add it to the end of the array
+        return [...prevTasks, formattedTask];
+      }
+    });
+
+    console.log(`✅ Task ${editingTaskId ? "updated" : "created"} successfully!`);
+    
+    // 4. Reset the form and close the modal
+    setFormData({ text: "", priority: "medium", description: "" });
+    setActiveDate(null);
+    setEditingTaskId(null);
+
+  } catch (error) {
+    console.error("❌ Error saving task:", error);
+    alert(`❌ Error: ${error.message}`);
+  }
 };
 
 
   const deleteTask = async (id) => {
-  try {
-    await fetch(`${API_URL}/api/planner/tasks/${id}/`, { method: "DELETE" });
-    // Refetch tasks after delete
-    await fetchTasks();
-  } catch (err) {
-    console.error("Error deleting task:", err);
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("You must be logged in to delete tasks.");
+    return;
+  }
+  
+  // Confirm before deleting
+  if (!window.confirm("Are you sure you want to delete this task?")) {
+    return;
   }
 
-  setActiveDate(null);
-  setEditingTaskId(null);
-  setActiveTaskId(null);
-};
+  try {
+    const response = await fetch(`${API_URL}/api/planner/tasks/${id}/`, {
+      method: "DELETE",
+      headers: { // ADD THIS
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
 
+    if (!response.ok) {
+      // Check if status is 204 No Content, which is a success for DELETE
+      if (response.status !== 204) {
+        throw new Error("Failed to delete task");
+      }
+    }
+    
+    // Update state locally for faster UI response
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+    console.log("✅ Task deleted successfully!");
+    
+    // Close the modal if it was open for this task
+    setActiveDate(null);
+    setEditingTaskId(null);
+
+  } catch (err) {
+    console.error("❌ Error deleting task:", err);
+    alert(`❌ Error: ${err.message}`);
+  }
+};
 
   const startEditingTask = (task) => {
     setEditingTaskId(task.id);
     setFormData({ text: task.text, priority: task.priority, description: task.description });
     setActiveDate(task.date);
   };
-  
-  
 
   // ---------------- HELP TOUR ----------------
   useEffect(() => {
@@ -169,7 +241,6 @@ useEffect(() => {
     el.scrollIntoView({ behavior: "smooth", block: "center" });
     const rect = el.getBoundingClientRect();
 
-    // Description box positioned near element
     setDescriptionStyle({
       top: rect.top + window.scrollY + rect.height / 2 - 30 + "px",
       left: Math.max(rect.left + window.scrollX - 320, 10) + "px",
@@ -189,15 +260,15 @@ useEffect(() => {
   };
 
   const handleTaskClick = (task) => {
-  setActiveTaskId(task.id);       // highlight this task
-  setActiveDate(task.date);       // open modal
-  setEditingTaskId(task.id);      // mark it as editing
-  setFormData({
-    text: task.text,
-    priority: task.priority,
-    description: task.description || "",
-  });
-};
+    setActiveTaskId(task.id);
+    setActiveDate(task.date);
+    setEditingTaskId(task.id);
+    setFormData({
+      text: task.text,
+      priority: task.priority,
+      description: task.description || "",
+    });
+  };
 
   // ---------------- RENDER WEEK ----------------
   const renderWeek = (week) => (
@@ -210,7 +281,9 @@ useEffect(() => {
         return (
           <div
             key={dateStr}
-            className={`calendar-day ${isWeekend ? "weekend" : "weekday"} ${dateStr === todayStr ? "today" : ""}`}
+            className={`calendar-day ${isWeekend ? "weekend" : "weekday"} ${
+              dateStr === todayStr ? "today" : ""
+            }`}
             onClick={() => handleDateClick(dateStr)}
             id="calendar-cell"
           >
@@ -218,23 +291,19 @@ useEffect(() => {
             <ul className="task-list">
               {dayEvents.map((ev) => (
                 <li
-                key={ev.id}
-                className={`task-item ${activeTaskId === ev.id ? "active-task" : ""}`}
-                onClick={(e) => { e.stopPropagation();
-                  handleTaskClick(ev);
+                  key={ev.id}
+                  className={`task-item ${activeTaskId === ev.id ? "active-task" : ""}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleTaskClick(ev);
                   }}
                 >
-                  
                   <span className={`priority-badge ${ev.priority}`}></span>
                   <span className="task-name">{ev.text}</span>
                   {activeTaskId === ev.id && (
                     <div className="task-actions">
-                      <button id="task-edit-btn"
-                      className="task-btn"
-                      onClick={() => startEditingTask(ev)}> ✎ </button>
-                      <button id="task-delete-btn" 
-                      className="task-btn"
-                      onClick={() => deleteTask(ev.id)}>×</button>
+                      <button id="task-edit-btn" className="task-btn" onClick={() => startEditingTask(ev)}> ✎ </button>
+                      <button id="task-delete-btn" className="task-btn" onClick={() => deleteTask(ev.id)}>×</button>
                     </div>
                   )}
                 </li>
@@ -249,12 +318,11 @@ useEffect(() => {
   const firstWeek = daysArray.slice(0, 7);
   const secondWeek = daysArray.slice(7, 14);
 
-   // Group tasks by day for the two-week period
-const tasksByDay = daysArray.map((day) => {
-  const dateStr = formatDate(day);
-  const dayTasks = tasks.filter((t) => t.date === dateStr);
-  return { date: dateStr, tasks: dayTasks };
-});
+  const tasksByDay = daysArray.map((day) => {
+    const dateStr = formatDate(day);
+    const dayTasks = tasks.filter((t) => t.date === dateStr);
+    return { date: dateStr, tasks: dayTasks };
+  });
 
   return (
     <div className="planner-page">
@@ -280,10 +348,7 @@ const tasksByDay = daysArray.map((day) => {
           {renderWeek(secondWeek)}
         </div>
       </div>
-  
 
-
-      {/* Task Modal */}
       {activeDate && (
         <div className="modal-overlay">
           <div className="modal" ref={modalRef}>
@@ -303,9 +368,7 @@ const tasksByDay = daysArray.map((day) => {
           </div>
         </div>
       )}
-      
 
-      {/* Description box with step number inside */}
       {showHelp && descriptionStyle && (
         <div
           className="help-description-box"
@@ -322,13 +385,7 @@ const tasksByDay = daysArray.map((day) => {
             zIndex: 2000,
           }}
         >
-          <div
-            style={{
-              fontWeight: "bold",
-              marginBottom: "6px",
-              color: "#007bff",
-            }}
-          >
+          <div style={{ fontWeight: "bold", marginBottom: "6px", color: "#007bff" }}>
             Step {helpStep + 1}
           </div>
           <div>{descriptionStyle.text}</div>
@@ -338,55 +395,56 @@ const tasksByDay = daysArray.map((day) => {
         </div>
       )}
 
-      {/* Legend */}
       <div className="calendar-legend">
         <div className="legend-item" id="legend-high"><div className="legend-color high" /> High Priority</div>
         <div className="legend-item" id="legend-medium"><div className="legend-color medium" /> Medium Priority</div>
         <div className="legend-item" id="legend-low"><div className="legend-color low" /> Low Priority</div>
       </div>
-      {/* Detailed Tasks Section */}
-<div className="tasks-panel">
-  <h2>Tasks for Next Two Weeks</h2>
-  {tasksByDay.every(day => day.tasks.length === 0) ? (
-    <p className="no-tasks">No tasks in this period</p>
-  ) : (
-    <ul className="detailed-task-list">
-      {tasksByDay.map(({ date, tasks }) =>
-        tasks.length > 0 ? (
-          <li key={date} className="day-group">
-            <div className="day-label">
-              {new Date(date).toLocaleDateString(undefined, {
-                weekday: "short",
-                month: "short",
-                day: "numeric",
-              })}
-            </div>
-            <ul>
-              {tasks
-                .slice()
-                .sort((a, b) => (a.time || "").localeCompare(b.time || ""))
-                .map((task) => (
-                  <li key={task.id} className={`detailed-task ${task.priority}`}>
-                    <div className="task-top">
-                      {task.time && <span className="task-time">{task.time}</span>}
-                    </div>
-                    <div className="task-body">
-                      <span className="task-title">{task.text}</span>
-                      {task.description && <p className="task-desc">{task.description}</p>}
-                    </div>
-                  </li>
-                ))}
-            </ul>
-          </li>
-        ) : null
-      )}
-    </ul>
-  )}
-</div>
 
+      <div className="tasks-panel">
+        <h2>Tasks for Next Two Weeks</h2>
+        {tasksByDay.every(day => day.tasks.length === 0) ? (
+          <p className="no-tasks">No tasks in this period</p>
+        ) : (
+          <ul className="detailed-task-list">
+            {tasksByDay.map(({ date, tasks }) =>
+              tasks.length > 0 ? (
+                <li key={date} className="day-group">
+                  <div className="day-label">
+                    {new Date(date).toLocaleDateString(undefined, {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </div>
+                  <ul>
+                    {tasks
+                      .slice()
+                      .sort((a, b) => (a.time || "").localeCompare(b.time || ""))
+                      .map((task) => (
+                        <li key={task.id} className={`detailed-task ${task.priority}`}>
+                          <div className="task-top">
+                            {task.time && <span className="task-time">{task.time}</span>}
+                          </div>
+                          <div className="task-body">
+                            <span className="task-title">{task.text}</span>
+                            {task.description && <p className="task-desc">{task.description}</p>}
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
+                </li>
+              ) : null
+            )}
+          </ul>
+        )}
+      </div>
     </div>
-    
   );
 };
 
 export default TwoWeekPlanner;
+
+
+
+
