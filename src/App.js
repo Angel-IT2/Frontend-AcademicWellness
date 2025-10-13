@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 
 // Components
@@ -16,19 +16,34 @@ import DashboardLayout from "./components/pageComponents/DashboardLayout";
 import Dashboard from "./components/pageComponents/Dashboard";
 import Profile from "./components/pageComponents/Profile";
 import WhatsTheDifference from "./components/pageComponents/WhatsTheDifference";
-import ModeratorDifference from "./components/pageComponents/ModeratorDifference"; // ✅ NEW IMPORT
+import ModeratorDifference from "./components/pageComponents/ModeratorDifference";
 import TwoWeekPlanner from "./components/pageComponents/TwoWeekPlanner";
 import MonthlyPlanner from "./components/pageComponents/MonthlyPlanner";
 import AcademicChatboxes from "./components/pageComponents/AcademicChatboxes";
 
+// ✅ ProtectedRoute component
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!user) {
+    // Not logged in
+    return <Navigate to="/login" />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.student_type)) {
+    // Logged in but role not allowed
+    return <Navigate to="/dashboard" />;
+  }
+
+  return children;
+};
+
 function App() {
-  // Shared tasks state with localStorage persistence
   const [tasks, setTasks] = useState(() => {
     const saved = localStorage.getItem("tasks");
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Save tasks to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
@@ -51,19 +66,27 @@ function App() {
               <Route index element={<Dashboard />} />
               <Route path="profile" element={<Profile />} />
 
-              {/* ✅ Student/Senior “What’s The Difference” */}
+              {/* Student/Senior “What’s The Difference” */}
               <Route
                 path="whats-the-difference"
-                element={<WhatsTheDifference />}
+                element={
+                  <ProtectedRoute allowedRoles={["First-year", "Senior"]}>
+                    <WhatsTheDifference />
+                  </ProtectedRoute>
+                }
               />
 
-              {/* ✅ Moderator “What’s The Difference” */}
+              {/* Moderator “What’s The Difference” */}
               <Route
                 path="moderator-difference"
-                element={<ModeratorDifference />}
+                element={
+                  <ProtectedRoute allowedRoles={["Moderator"]}>
+                    <ModeratorDifference />
+                  </ProtectedRoute>
+                }
               />
 
-              {/* ✅ Planners */}
+              {/* Planners */}
               <Route
                 path="two-week-planner"
                 element={<TwoWeekPlanner tasks={tasks} setTasks={setTasks} />}
@@ -73,7 +96,7 @@ function App() {
                 element={<MonthlyPlanner tasks={tasks} setTasks={setTasks} />}
               />
 
-              {/* ✅ Academic chat */}
+              {/* Academic chat */}
               <Route path="academic-chatboxes" element={<AcademicChatboxes />} />
             </Route>
           </Routes>
