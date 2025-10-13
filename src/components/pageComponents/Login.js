@@ -16,28 +16,37 @@ function Login() {
     setError("");
 
     try {
-      const response = await fetch("https://backend-academicwellness.onrender.com/api/auth/login/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ 
-          identifier: email,  // ✅ backend expects 'identifier'
-          password: password, // ✅ password stays the same
-        }),
-      });
+      const response = await fetch(
+        "https://backend-academicwellness.onrender.com/api/auth/login/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            identifier: email,
+            password: password,
+          }),
+        }
+      );
 
       const data = await response.json();
 
       if (response.ok) {
-        // ✅ Save the token and user info
+        // Save token and user info
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
 
-        alert("Login successful!");
-        navigate("/dashboard");
+        // Get the user's role from backend response
+        const userRole = data.user.student_type; // or data.user.role if backend uses "role"
+
+        // Redirect based on role
+        if (userRole === "Moderator") {
+          navigate("/moderator-difference");
+        } else {
+          navigate("/whats-the-difference");
+        }
       } else {
-        // ❌ Display backend-provided error or fallback message
         setError(data.message || "Invalid email or password.");
       }
     } catch (err) {
