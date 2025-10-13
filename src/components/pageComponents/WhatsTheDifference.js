@@ -1,42 +1,8 @@
-import React, { useState, useEffect } from "react";
-import "./WhatstheDifference_style.css"; 
-
-const demoPosts = [
-  {
-    title: "Assessments are heavier",
-    author: "Sarah J",
-    content: "Tests, Assignments and Exams carry more weight each. Don't expect to do the same things you did in high school.",
-    helpful: 5,
-    timestamp: new Date("2025-08-30T12:00:00"),
-    replies: [],
-  },
-  {
-    title: "Lectures move faster",
-    author: "Michael K",
-    content: "In university, lecturers won’t always slow down for everyone. It’s important to review slides before and after class.",
-    helpful: 3,
-    timestamp: new Date("2025-09-05T12:00:00"),
-    replies: [],
-  },
-  {
-    title: "You must manage your own time",
-    author: "Lerato M",
-    content: "Nobody will remind you to do your work. Time management becomes a crucial skill if you want to keep up.",
-    helpful: 7,
-    timestamp: new Date("2025-09-08T12:00:00"),
-    replies: [],
-  },
-];
+import React, { useState } from "react";
+import "./WhatstheDifference_style.css";
 
 const WhatsTheDifference = () => {
-  const user = JSON.parse(localStorage.getItem("user")); // get logged-in user
-  const [posts, setPosts] = useState(demoPosts);
-  const [pendingPosts, setPendingPosts] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({ title: "", author: "", content: "" });
-  const [sortBy, setSortBy] = useState("helpful");
-  const [replying, setReplying] = useState(null);
-  const [replyText, setReplyText] = useState("");
+  const user = JSON.parse(localStorage.getItem("user"));
 
   const formatDate = (d) => {
     const now = new Date();
@@ -49,21 +15,35 @@ const WhatsTheDifference = () => {
     return d.toLocaleDateString();
   };
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const [posts, setPosts] = useState([
+    { title: "Assessments are heavier", author: "Sarah J", content: "Tests, Assignments and Exams carry more weight.", helpful: 5, timestamp: new Date("2025-08-30T12:00:00"), replies: [] },
+    { title: "Lectures move faster", author: "Michael K", content: "Lecturers won’t slow down. Review slides before and after class.", helpful: 3, timestamp: new Date("2025-09-05T12:00:00"), replies: [] },
+    { title: "You must manage your own time", author: "Lerato M", content: "Time management is crucial.", helpful: 7, timestamp: new Date("2025-09-08T12:00:00"), replies: [] },
+  ]);
+
+  const [pendingPosts, setPendingPosts] = useState([]);
+
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({ title: "", author: "", content: "" });
+  const [sortBy, setSortBy] = useState("helpful");
+  const [replying, setReplying] = useState(null);
+  const [replyText, setReplyText] = useState("");
+
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const addPost = () => {
     if (!formData.title || !formData.author || !formData.content) {
       alert("Please fill out all fields.");
       return;
     }
-    const newPost = {
-      ...formData,
-      helpful: 0,
-      timestamp: new Date(),
-      replies: [],
-    };
-    setPendingPosts([newPost, ...pendingPosts]);
+    const newPost = { ...formData, helpful: 0, timestamp: new Date(), replies: [] };
+
+    if (user.student_type === "Moderator") {
+      setPosts([newPost, ...posts]); // Moderators can post directly
+    } else {
+      setPendingPosts([newPost, ...pendingPosts]); // Seniors go to pending
+    }
+
     setFormData({ title: "", author: "", content: "" });
     setShowForm(false);
   };
@@ -105,44 +85,23 @@ const WhatsTheDifference = () => {
         Real Insights from your seniors: High school vs University
       </div>
 
-      {/* Only senior students can post */}
-      {user?.student_type === "Moderator" || user?.student_type === "Senior" ? (
-        <>
-          <button id="toggleFormBtn" onClick={() => setShowForm(!showForm)}>
-            {showForm ? "− Hide Form" : "+ New Post"}
-          </button>
+      {/* Toggle form */}
+      <button id="toggleFormBtn" onClick={() => setShowForm(!showForm)}>
+        {showForm ? "− Hide Form" : "+ New Post"}
+      </button>
 
-          {showForm && (
-            <div className="new-post">
-              <h2>Submit a new insight</h2>
-              <input
-                type="text"
-                name="title"
-                placeholder="Post title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-              />
-              <input
-                type="text"
-                name="author"
-                placeholder="Your name"
-                value={formData.author}
-                onChange={handleChange}
-              />
-              <textarea
-                name="content"
-                placeholder="Share your insight..."
-                value={formData.content}
-                onChange={handleChange}
-              />
-              <button onClick={addPost}>Submit Post</button>
-            </div>
-          )}
-        </>
-      ) : null}
+      {showForm && (
+        <div className="new-post">
+          <h2>Submit a new insight</h2>
+          <input type="text" name="title" placeholder="Post title" value={formData.title} onChange={handleChange} />
+          <input type="text" name="author" placeholder="Your name" value={formData.author} onChange={handleChange} />
+          <textarea name="content" placeholder="Share your insight..." value={formData.content} onChange={handleChange} />
+          <button onClick={addPost}>Submit Post</button>
+        </div>
+      )}
 
-      {pendingPosts.length > 0 && (
+      {/* Pending approval only visible to Moderators */}
+      {user.student_type === "Moderator" && pendingPosts.length > 0 && (
         <div className="pending-section">
           <h3>Pending Approval</h3>
           {pendingPosts.map((post, idx) => (
@@ -156,14 +115,10 @@ const WhatsTheDifference = () => {
         </div>
       )}
 
-      {/* Sorting */}
+      {/* Sorting dropdown */}
       <div className="sort-controls">
         <label htmlFor="sortSelect">Sort by: </label>
-        <select
-          id="sortSelect"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-        >
+        <select id="sortSelect" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
           <option value="helpful">Most Helpful</option>
           <option value="newest">Newest</option>
         </select>
@@ -181,8 +136,7 @@ const WhatsTheDifference = () => {
               <div className="user">
                 <div className="avatar">{post.author.charAt(0).toUpperCase()}</div>
                 <div className="user-info">
-                  <strong>{post.author}</strong>{" "}
-                  <span className="tag">{user?.student_type || "Student"}</span>
+                  <strong>{post.author}</strong> <span className="tag">Senior Student</span>
                 </div>
               </div>
 
@@ -196,11 +150,7 @@ const WhatsTheDifference = () => {
 
               {replying === idx && (
                 <div className="quick-reply">
-                  <textarea
-                    placeholder="Reply to this post..."
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                  />
+                  <textarea placeholder="Reply..." value={replyText} onChange={(e) => setReplyText(e.target.value)} />
                   <div className="submit-row">
                     <button onClick={() => submitReply(idx)}>Submit reply</button>
                   </div>
