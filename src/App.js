@@ -16,6 +16,7 @@ import DashboardLayout from "./components/pageComponents/DashboardLayout";
 import Dashboard from "./components/pageComponents/Dashboard";
 import Profile from "./components/pageComponents/Profile";
 import WhatsTheDifference from "./components/pageComponents/WhatsTheDifference";
+import ModeratorDifference from "./components/pageComponents/ModeratorDifference"; // ✅ NEW IMPORT
 import TwoWeekPlanner from "./components/pageComponents/TwoWeekPlanner";
 import MonthlyPlanner from "./components/pageComponents/MonthlyPlanner";
 import AcademicChatboxes from "./components/pageComponents/AcademicChatboxes";
@@ -38,18 +39,31 @@ function App() {
         <Header />
         <div className="body">
           <Routes>
+            {/* Public pages */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/faqs" element={<FAQ />} />
-            <Route path="/About" element={<About />} />
+            <Route path="/about" element={<About />} />
 
+            {/* Dashboard and internal pages */}
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="profile" element={<Profile />} />
-              <Route path="whats-the-difference" element={<WhatsTheDifference />} />
 
-              {/* Pass tasks and setTasks to planners */}
+              {/* ✅ Student/Senior “What’s The Difference” */}
+              <Route
+                path="whats-the-difference"
+                element={<WhatsTheDifference />}
+              />
+
+              {/* ✅ Moderator “What’s The Difference” */}
+              <Route
+                path="moderator-difference"
+                element={<ModeratorDifference />}
+              />
+
+              {/* ✅ Planners */}
               <Route
                 path="two-week-planner"
                 element={<TwoWeekPlanner tasks={tasks} setTasks={setTasks} />}
@@ -59,6 +73,7 @@ function App() {
                 element={<MonthlyPlanner tasks={tasks} setTasks={setTasks} />}
               />
 
+              {/* ✅ Academic chat */}
               <Route path="academic-chatboxes" element={<AcademicChatboxes />} />
             </Route>
           </Routes>
