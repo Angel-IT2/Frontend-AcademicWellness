@@ -10,7 +10,7 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [studentType, setStudentType] = useState("first_year");
+  const [studentType, setStudentType] = useState("First-year");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ function Register() {
             email: email,
             password: password,
             confirm_password: confirmPassword,
-            student_type: studentType,
+            student_type: studentType, // Matches backend types exactly
           }),
         }
       );
@@ -103,10 +103,9 @@ function Register() {
           required
           className="auth-select"
         >
-          <option value="first_year">First Year</option>
-          <option value="second_year">Second Year</option>
-          <option value="third_year">Third Year</option>
-          <option value="postgraduate">Postgraduate</option>
+          <option value="First-year">First-year</option>
+          <option value="Senior">Senior</option>
+          <option value="Moderator">Moderator</option>
         </select>
 
         {error && <div className="error-msg">{error}</div>}
