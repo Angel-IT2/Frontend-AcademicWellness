@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 
-// Components
 import Header from "./components/sectionComponents/header";
 import Footer from "./components/sectionComponents/footer";
-
-// Pages
 import Home from "./components/pageComponents/Home";
 import Login from "./components/pageComponents/Login";
 import Register from "./components/pageComponents/Register";
@@ -15,25 +12,17 @@ import About from "./components/pageComponents/About";
 import DashboardLayout from "./components/pageComponents/DashboardLayout";
 import Dashboard from "./components/pageComponents/Dashboard";
 import Profile from "./components/pageComponents/Profile";
-import WhatsTheDifference from "./components/pageComponents/WhatsTheDifference";
-import ModeratorDifference from "./components/pageComponents/ModeratorDifference";
 import TwoWeekPlanner from "./components/pageComponents/TwoWeekPlanner";
 import MonthlyPlanner from "./components/pageComponents/MonthlyPlanner";
 import AcademicChatboxes from "./components/pageComponents/AcademicChatboxes";
 
-// ✅ ProtectedRoute component
+const WhatsTheDifference = lazy(() => import("./components/pageComponents/WhatsTheDifference"));
+const ModeratorDifference = lazy(() => import("./components/pageComponents/ModeratorDifference"));
+
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const user = JSON.parse(localStorage.getItem("user"));
-  const token = localStorage.getItem("token");
-
-  // Not logged in or token missing
-  if (!user || !token) return <Navigate to="/login" />;
-
-  // Logged in but role not allowed
-  if (allowedRoles && !allowedRoles.includes(user.student_type)) {
-    return <Navigate to="/dashboard" />;
-  }
-
+  if (!user) return <Navigate to="/login" />;
+  if (allowedRoles && !allowedRoles.includes(user.student_type)) return <Navigate to="/dashboard" />;
   return children;
 };
 
@@ -52,56 +41,33 @@ function App() {
       <div className="App">
         <Header />
         <div className="body">
-          <Routes>
-            {/* Public pages */}
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/faqs" element={<FAQ />} />
-            <Route path="/about" element={<About />} />
+          <Suspense fallback={<div style={{ padding: "20px" }}>Loading...</div>}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/faqs" element={<FAQ />} />
+              <Route path="/about" element={<About />} />
 
-            {/* Dashboard and internal pages */}
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="profile" element={<Profile />} />
-
-              {/* Senior and First-year “What’s The Difference” */}
-              <Route
-                path="whats-the-difference"
-                element={
+              <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="whats-the-difference" element={
                   <ProtectedRoute allowedRoles={["First-year", "Senior"]}>
                     <WhatsTheDifference />
                   </ProtectedRoute>
-                }
-              />
-
-              {/* Moderator “What’s The Difference” */}
-              <Route
-                path="moderator-difference"
-                element={
+                } />
+                <Route path="moderator-difference" element={
                   <ProtectedRoute allowedRoles={["Moderator"]}>
                     <ModeratorDifference />
                   </ProtectedRoute>
-                }
-              />
-
-              {/* Planners */}
-              <Route
-                path="two-week-planner"
-                element={<TwoWeekPlanner tasks={tasks} setTasks={setTasks} />}
-              />
-              <Route
-                path="monthly-planner"
-                element={<MonthlyPlanner tasks={tasks} setTasks={setTasks} />}
-              />
-
-              {/* Academic chat */}
-              <Route path="academic-chatboxes" element={<AcademicChatboxes />} />
-            </Route>
-
-            {/* Fallback route */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+                } />
+                <Route path="two-week-planner" element={<TwoWeekPlanner tasks={tasks} setTasks={setTasks} />} />
+                <Route path="monthly-planner" element={<MonthlyPlanner tasks={tasks} setTasks={setTasks} />} />
+                <Route path="academic-chatboxes" element={<AcademicChatboxes />} />
+              </Route>
+            </Routes>
+          </Suspense>
         </div>
         <Footer />
       </div>
