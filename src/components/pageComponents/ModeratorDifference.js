@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAuthHeaders, API_URL } from "../apiComponents/api";
+import { API_URL, getAuthHeaders } from "../apiComponents/api";
 import "./WhatstheDifference_style.css";
 
 const ModeratorDifference = () => {
@@ -14,32 +14,12 @@ const ModeratorDifference = () => {
     const token = localStorage.getItem("token");
     if (storedUser && token) {
       const parsedUser = JSON.parse(storedUser);
-      if (parsedUser.student_type === "Moderator") setUser(parsedUser);
-      fetchPosts(filter);
+      if (parsedUser.student_type === "Moderator") {
+        setUser(parsedUser);
+        fetchPosts("pending");
+      }
     }
   }, []);
-
-  // Auto refresh token every 9 minutes
-  useEffect(() => {
-    const interval = setInterval(refreshToken, 9 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const refreshToken = async () => {
-    try {
-      const refresh = localStorage.getItem("refresh_token");
-      if (!refresh) return;
-      const res = await fetch(`${API_URL}/auth/refresh/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh }),
-      });
-      const data = await res.json();
-      if (res.ok && data.access) localStorage.setItem("token", data.access);
-    } catch (err) {
-      console.error("Token refresh failed:", err);
-    }
-  };
 
   const fetchPosts = async (status = "pending") => {
     setLoading(true);
@@ -50,7 +30,7 @@ const ModeratorDifference = () => {
       const data = await res.json();
       if (Array.isArray(data)) setPosts(data);
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -62,12 +42,15 @@ const ModeratorDifference = () => {
         method: "POST",
         headers: getAuthHeaders(),
       });
-      if (!res.ok) throw new Error("Action failed");
-      alert(`Post ${action}ed successfully.`);
-      fetchPosts(filter);
+      const data = await res.json();
+      if (res.ok) {
+        alert(`Post ${action}ed successfully.`);
+        fetchPosts(filter);
+      } else {
+        alert("Action failed.");
+      }
     } catch (err) {
       console.error("Action error:", err);
-      alert("Error performing action.");
     }
   };
 
@@ -76,7 +59,9 @@ const ModeratorDifference = () => {
   return (
     <div className="container">
       <h4>Moderator – WhatsTheDifference</h4>
-      <div className="wdifference-caption">Manage insights submitted by Senior Students</div>
+      <div className="wdifference-caption">
+        Manage insights submitted by Senior Students
+      </div>
 
       {!user ? (
         <p>Only moderators can access this page.</p>
@@ -114,7 +99,11 @@ const ModeratorDifference = () => {
                 </div>
                 <div className="post-body">
                   <div className="user">
-                    <div className="avatar">{p.author_username?.charAt(0).toUpperCase() || "U"}</div>
+                    <div className="avatar">
+                      {p.author_username
+                        ? p.author_username.charAt(0).toUpperCase()
+                        : "U"}
+                    </div>
                     <div className="user-info">
                       <strong>{p.author_username}</strong>
                       <span className="tag">{p.status}</span>
@@ -125,8 +114,12 @@ const ModeratorDifference = () => {
                     <span>👍 Helpful: {p.helpful_count}</span>
                     {filter === "pending" && (
                       <>
-                        <button onClick={() => handleAction(p.id, "approve")}>✅ Approve</button>
-                        <button onClick={() => handleAction(p.id, "reject")}>❌ Reject</button>
+                        <button onClick={() => handleAction(p.id, "approve")}>
+                          ✅ Approve
+                        </button>
+                        <button onClick={() => handleAction(p.id, "reject")}>
+                          ❌ Reject
+                        </button>
                       </>
                     )}
                   </div>
