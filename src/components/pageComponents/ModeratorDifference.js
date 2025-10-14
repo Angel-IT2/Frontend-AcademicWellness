@@ -51,7 +51,10 @@ const ModeratorDifference = () => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/wtd/posts/?status=${status}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
       const data = await res.json();
       if (Array.isArray(data)) setPosts(data);
@@ -62,23 +65,36 @@ const ModeratorDifference = () => {
     }
   };
 
-  // Approve or Reject posts
+  // ✅ Approve or Reject posts (fixed)
   const handleAction = async (id, action) => {
     const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You are not logged in.");
+      return;
+    }
+
     try {
       const res = await fetch(`${API_BASE}/wtd/posts/${id}/${action}/`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
+
       const data = await res.json();
+
       if (res.ok) {
-        alert(`Post ${action}ed successfully.`);
+        alert(`✅ Post ${action}ed successfully.`);
+        // Refresh list after action
         fetchPosts(filter, token);
       } else {
-        alert("Action failed.");
+        console.error("Action failed:", data);
+        alert(data.detail || "Action failed — please try again.");
       }
     } catch (err) {
       console.error("Action error:", err);
+      alert("Network or token error — please log in again.");
     }
   };
 
