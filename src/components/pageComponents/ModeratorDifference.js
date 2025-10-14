@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { getAuthHeaders, API_URL } from "../apiComponents/api";
 import "./WhatstheDifference_style.css";
-
-const API_BASE = "https://backend-academicwellness.onrender.com/api";
 
 const ModeratorDifference = () => {
   const [user, setUser] = useState(null);
@@ -15,10 +14,8 @@ const ModeratorDifference = () => {
     const token = localStorage.getItem("token");
     if (storedUser && token) {
       const parsedUser = JSON.parse(storedUser);
-      if (parsedUser.student_type === "Moderator") {
-        setUser(parsedUser);
-        fetchPosts("pending", token);
-      }
+      if (parsedUser.student_type === "Moderator") setUser(parsedUser);
+      fetchPosts(filter);
     }
   }, []);
 
@@ -32,29 +29,23 @@ const ModeratorDifference = () => {
     try {
       const refresh = localStorage.getItem("refresh_token");
       if (!refresh) return;
-      const res = await fetch(`${API_BASE}/auth/refresh/`, {
+      const res = await fetch(`${API_URL}/auth/refresh/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh }),
       });
       const data = await res.json();
-      if (res.ok && data.access) {
-        localStorage.setItem("token", data.access);
-      }
+      if (res.ok && data.access) localStorage.setItem("token", data.access);
     } catch (err) {
       console.error("Token refresh failed:", err);
     }
   };
 
-  // Fetch posts by status
-  const fetchPosts = async (status = "pending", token) => {
+  const fetchPosts = async (status = "pending") => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/wtd/posts/?status=${status}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+      const res = await fetch(`${API_URL}/wtd/posts/?status=${status}`, {
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (Array.isArray(data)) setPosts(data);
@@ -65,36 +56,18 @@ const ModeratorDifference = () => {
     }
   };
 
-  // ✅ Approve or Reject posts (fixed)
   const handleAction = async (id, action) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You are not logged in.");
-      return;
-    }
-
     try {
-      const res = await fetch(`${API_BASE}/wtd/posts/${id}/${action}/`, {
+      const res = await fetch(`${API_URL}/wtd/posts/${id}/${action}/`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: getAuthHeaders(),
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        alert(`✅ Post ${action}ed successfully.`);
-        // Refresh list after action
-        fetchPosts(filter, token);
-      } else {
-        console.error("Action failed:", data);
-        alert(data.detail || "Action failed — please try again.");
-      }
+      if (!res.ok) throw new Error("Action failed");
+      alert(`Post ${action}ed successfully.`);
+      fetchPosts(filter);
     } catch (err) {
       console.error("Action error:", err);
-      alert("Network or token error — please log in again.");
+      alert("Error performing action.");
     }
   };
 
@@ -103,9 +76,7 @@ const ModeratorDifference = () => {
   return (
     <div className="container">
       <h4>Moderator – WhatsTheDifference</h4>
-      <div className="wdifference-caption">
-        Manage insights submitted by Senior Students
-      </div>
+      <div className="wdifference-caption">Manage insights submitted by Senior Students</div>
 
       {!user ? (
         <p>Only moderators can access this page.</p>
@@ -122,7 +93,7 @@ const ModeratorDifference = () => {
               value={filter}
               onChange={(e) => {
                 setFilter(e.target.value);
-                fetchPosts(e.target.value, localStorage.getItem("token"));
+                fetchPosts(e.target.value);
               }}
             >
               <option value="pending">Pending</option>
@@ -134,9 +105,7 @@ const ModeratorDifference = () => {
           {loading && <p>Loading posts...</p>}
 
           <div id="postsList">
-            {posts.length === 0 && !loading && (
-              <p>No {filter} posts available.</p>
-            )}
+            {posts.length === 0 && !loading && <p>No {filter} posts available.</p>}
             {posts.map((p) => (
               <article className="post" key={p.id}>
                 <div className="post-header">
@@ -145,11 +114,7 @@ const ModeratorDifference = () => {
                 </div>
                 <div className="post-body">
                   <div className="user">
-                    <div className="avatar">
-                      {p.author_username
-                        ? p.author_username.charAt(0).toUpperCase()
-                        : "U"}
-                    </div>
+                    <div className="avatar">{p.author_username?.charAt(0).toUpperCase() || "U"}</div>
                     <div className="user-info">
                       <strong>{p.author_username}</strong>
                       <span className="tag">{p.status}</span>
@@ -160,12 +125,8 @@ const ModeratorDifference = () => {
                     <span>👍 Helpful: {p.helpful_count}</span>
                     {filter === "pending" && (
                       <>
-                        <button onClick={() => handleAction(p.id, "approve")}>
-                          ✅ Approve
-                        </button>
-                        <button onClick={() => handleAction(p.id, "reject")}>
-                          ❌ Reject
-                        </button>
+                        <button onClick={() => handleAction(p.id, "approve")}>✅ Approve</button>
+                        <button onClick={() => handleAction(p.id, "reject")}>❌ Reject</button>
                       </>
                     )}
                   </div>
