@@ -1,11 +1,16 @@
-// src/components/apiComponents/api.js
-export const API_URL = "https://backend-academicwellness.onrender.com"; // replace if needed
+export const API_URL = "https://backend-academicwellness.onrender.com"; // backend base URL
 
+// Function to get headers with Bearer token for authenticated requests
 export const getAuthHeaders = () => {
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!user?.access) return {};
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    return { "Content-Type": "application/json" };
+  }
+
   return {
-    Authorization: `Bearer ${user.access}`,
+    Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
   };
 };
+
