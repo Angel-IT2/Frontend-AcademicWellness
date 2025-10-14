@@ -24,14 +24,13 @@ import AcademicChatboxes from "./components/pageComponents/AcademicChatboxes";
 // ✅ ProtectedRoute component
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const user = JSON.parse(localStorage.getItem("user"));
+  const token = localStorage.getItem("token");
 
-  if (!user) {
-    // Not logged in
-    return <Navigate to="/login" />;
-  }
+  // Not logged in or token missing
+  if (!user || !token) return <Navigate to="/login" />;
 
+  // Logged in but role not allowed
   if (allowedRoles && !allowedRoles.includes(user.student_type)) {
-    // Logged in but role not allowed
     return <Navigate to="/dashboard" />;
   }
 
@@ -66,7 +65,7 @@ function App() {
               <Route index element={<Dashboard />} />
               <Route path="profile" element={<Profile />} />
 
-              {/* Student/Senior “What’s The Difference” */}
+              {/* Senior and First-year “What’s The Difference” */}
               <Route
                 path="whats-the-difference"
                 element={
@@ -99,6 +98,9 @@ function App() {
               {/* Academic chat */}
               <Route path="academic-chatboxes" element={<AcademicChatboxes />} />
             </Route>
+
+            {/* Fallback route */}
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
         <Footer />
