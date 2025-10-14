@@ -88,14 +88,22 @@ const fetchTasks = useCallback(async () => {
       throw new Error(`Failed to fetch tasks. Status: ${response.status}`);
     }
     const data = await response.json();
+    
+    if (data && Array.isArray(data.results)) {
+   const formatted = data.results.map((task) => ({
+        ...task,
+        text: task.title, // Keep the transformation
+      }));
 
-    const formatted = data.map((task) => ({
-      ...task,
-      text: task.title,
-    }));
+      setTasks(formatted);
+      console.log(`✅ Loaded ${formatted.length} tasks successfully.`);
 
-    setTasks(formatted);
-    console.log(`✅ Loaded ${formatted.length} tasks successfully.`);
+    } else {
+      // Handle cases where the API might not return the expected structure
+      console.error("API response did not contain a 'results' array:", data);
+      setTasks([]); // Set to an empty array to avoid crashing the UI
+    }
+    
   } catch (err) {
     console.error("❌ Error fetching tasks:", err);
   }
