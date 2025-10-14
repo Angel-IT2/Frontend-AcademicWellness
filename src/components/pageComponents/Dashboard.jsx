@@ -12,10 +12,16 @@ const Dashboard = () => {
     }
   }, [storedUser, navigate]);
 
+  // Determine WhatsTheDifference link based on role
+  const wtdLink =
+    storedUser?.student_type === "Moderator"
+      ? "/dashboard/moderator-difference"
+      : "/dashboard/whats-the-difference";
+
   const journeySteps = [
     { step: "1. Activate Account", link: null },
-    { step: "2. Complete Profile", link: "/dashboard/profile" },
-    { step: "3. WhatsTheDifference", link: "/dashboard/whats-the-difference" },
+    { step: "2. Complete Profile", link: null }, // Profile step removed from clickable
+    { step: "3. WhatsTheDifference", link: wtdLink },
     { step: "4. Setup Your Two-Week Plan", link: "/dashboard/two-week-planner" },
     { step: "5. Setup a Monthly Plan", link: "/dashboard/monthly-planner" },
   ];
@@ -38,7 +44,7 @@ const Dashboard = () => {
       <h2>Monthly Academic Planner</h2>
       <div className="planner-box">
         <p>Plan your month with automated reminders for upcoming academic tasks.</p>
-        <button onClick={() => navigate("/monthly-planner")}>
+        <button onClick={() => navigate("/dashboard/monthly-planner")}>
           Open Planner
         </button>
       </div>
