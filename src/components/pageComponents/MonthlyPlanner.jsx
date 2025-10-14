@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./MonthlyPlanner.css";
+export const API_URL = 'https://backend-academicwellness.onrender.com';
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const THEME_COLORS = ["#6366f1", "#4a90e2", "#e57373", "#81c784", "#ffb74d"];
@@ -9,8 +10,8 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
   const setTasksSafe = propSetTasks || setTasks;
 
   useEffect(() => {
-    setTasks(propTasks);
-  }, [propTasks]);
+  if (!propSetTasks) setTasks(propTasks);
+}, [propTasks, propSetTasks]);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
@@ -77,31 +78,104 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
     setSelectedDate(dateStr);
   };
 
-  const saveTask = () => {
-    if (!formData.text || !selectedDate) return;
+  const saveTask = async () => {
+  if (!formData.text || !selectedDate) return;
 
-    if (editingTaskId) {
-      setTasksSafe((prev) =>
-        prev.map((t) => (t.id === editingTaskId ? { ...t, ...formData } : t))
-      );
-    } else {
-      setTasksSafe((prev) => [
-        ...prev,
-        { id: Date.now(), date: selectedDate, ...formData },
-      ]);
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("You must be logged in to save tasks.");
+    return;
+  }
+
+  try {
+    const method = editingTaskId ? "PUT" : "POST";
+    const url = editingTaskId
+      ? `${API_URL}/api/planner/tasks/${editingTaskId}/`
+      : `${API_URL}/api/planner/tasks/`;
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        date: selectedDate,
+        title: formData.text,
+        description: formData.description,
+        priority: formData.priority,
+        time: formData.time,
+        allow_reminders: true
+      }),
+    });
+
+    if (!response.ok) {
+      const errMsg = await response.json();
+      throw new Error(errMsg.detail || "Failed to save task.");
     }
+
+    const savedTask = await response.json();
+    const formattedTask = { ...savedTask, text: savedTask.title };
+
+    setTasksSafe(prev => {
+      if (editingTaskId) {
+        return prev.map(t => t.id === editingTaskId ? formattedTask : t);
+      } else {
+        return [...prev, formattedTask];
+      }
+    });
 
     setFormData({ text: "", priority: "medium", description: "", time: "" });
     setSelectedDate(null);
     setEditingTaskId(null);
-  };
 
-  const deleteTask = (id) => setTasksSafe((prev) => prev.filter((t) => t.id !== id));
+  } catch (error) {
+    console.error("❌ Error saving task:", error);
+    alert(`❌ Error: ${error.message}`);
+  }
+};
+
+
+  const deleteTask = async (id) => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("You must be logged in to delete tasks.");
+    return;
+  }
+
+  if (!window.confirm("Are you sure you want to delete this task?")) return;
+
+  try {
+    const response = await fetch(`${API_URL}/api/planner/tasks/${id}/`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok && response.status !== 204) throw new Error("Failed to delete task");
+
+    setTasksSafe(prev => prev.filter(t => t.id !== id));
+    setSelectedDate(null);
+    setEditingTaskId(null);
+
+  } catch (err) {
+    console.error("❌ Error deleting task:", err);
+    alert(`❌ Error: ${err.message}`);
+  }
+};
+
   const startEditingTask = (task) => {
-    setEditingTaskId(task.id);
-    setFormData(task);
-    setSelectedDate(task.date);
-  };
+  setEditingTaskId(task.id);
+  setFormData({
+    text: task.text,
+    priority: task.priority,
+    description: task.description,
+    time: task.time || ""
+  });
+  setSelectedDate(task.date);
+};
 
   useEffect(() => {
     const handleClick = (e) => {

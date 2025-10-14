@@ -18,8 +18,8 @@ const helpSteps = [
   { id: "legend-low", text: "Low priority tasks are marked in green." },
 ];
 
-const TwoWeekPlanner = () => {
-  const [tasks, setTasks] = useState([]);
+const TwoWeekPlanner = ({ tasks, setTasks }) => {
+  // tasks and setTasks come from parent now
   const [activeDate, setActiveDate] = useState(null);
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
@@ -107,7 +107,7 @@ const fetchTasks = useCallback(async () => {
   } catch (err) {
     console.error("❌ Error fetching tasks:", err);
   }
-}, [formatDate]); // formatDate is a dependency from useCallback
+}, [formatDate, setTasks]); // formatDate is a dependency from useCallback
 
 // Now, your useEffect hook becomes very simple and clean
 useEffect(() => {
