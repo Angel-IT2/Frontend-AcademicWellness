@@ -15,6 +15,11 @@ const Sidebar = () => {
   const location = useLocation();
 
   const user = JSON.parse(localStorage.getItem("user"));
+  if (!user) {
+    navigate("/login"); // Redirect if not logged in
+    return null;
+  }
+
   const studentType = (user?.student_type || "").trim();
 
   const wtdPath =
