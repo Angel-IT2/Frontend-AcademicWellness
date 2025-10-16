@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect} from "react";
 import "./MonthlyPlanner.css";
 export const API_URL = 'https://backend-academicwellness.onrender.com';
 
@@ -9,19 +9,66 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
   const [tasks, setTasks] = useState(propTasks);
   const setTasksSafe = propSetTasks || setTasks;
 
-  useEffect(() => {
-  if (!propSetTasks) setTasks(propTasks);
-}, [propTasks, propSetTasks]);
-
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [editingTaskId, setEditingTaskId] = useState(null);
-  const [formData, setFormData] = useState({
-    text: "",
-    priority: "medium",
-    description: "",
-    time: "",
-  });
+const [selectedDate, setSelectedDate] = useState(null);
+const [formData, setFormData] = useState({
+  text: "",
+  priority: "medium",
+  description: "",
+  time: "",
+});
+const [editingTaskId, setEditingTaskId] = useState(null);
+
+ const formatDate = (date) => {
+  const d = new Date(date);
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
+};
+
+const fetchTasks = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+
+  try {
+    const response = await fetch(
+      `${API_URL}/api/planner/tasks/month/?year=${year}&month=${month}&include_empty=false`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok)
+      throw new Error(`Failed to fetch monthly tasks (${response.status})`);
+
+    const data = await response.json();
+
+    // Backend groups by date → { "2025-10-15": [task1, task2], "2025-10-16": [...] }
+    let formatted = [];
+    for (const [date, dayTasks] of Object.entries(data)) {
+      dayTasks.forEach((task) => {
+        formatted.push({
+          ...task,
+          date,
+          text: task.title,
+        });
+      });
+    }
+
+    setTasksSafe(formatted);
+    console.log(`✅ Loaded ${formatted.length} tasks for month ${month}/${year}`);
+  } catch (err) {
+    console.error("❌ Error fetching monthly tasks:", err);
+  }
+};
+
+
 
   const [showSettings, setShowSettings] = useState(false);
   const [themeColor, setThemeColor] = useState(THEME_COLORS[0]);
@@ -36,13 +83,6 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
     month: "long",
     year: "numeric",
   });
-
-  const formatDate = (date) => {
-    const d = new Date(date);
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${d.getFullYear()}-${month}-${day}`;
-  };
 
   const weekdays = startWeekMonday ? [...WEEKDAYS.slice(1), WEEKDAYS[0]] : WEEKDAYS;
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
@@ -125,6 +165,8 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
       }
     });
 
+   
+
     setFormData({ text: "", priority: "medium", description: "", time: "" });
     setSelectedDate(null);
     setEditingTaskId(null);
@@ -133,6 +175,8 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
     console.error("❌ Error saving task:", error);
     alert(`❌ Error: ${error.message}`);
   }
+
+  await fetchTasks();
 };
 
 
@@ -164,6 +208,8 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
     console.error("❌ Error deleting task:", err);
     alert(`❌ Error: ${err.message}`);
   }
+
+  await fetchTasks();
 };
 
   const startEditingTask = (task) => {
@@ -459,7 +505,7 @@ const TaskItem = ({ task, deleteTask, startEditingTask, editingTaskId, formData,
               <button onClick={() => startEditingTask(task)}>✎</button>
               <button onClick={() => deleteTask(task.id)}>×</button>
             </div>
-            )};
+            )}
           </div>
           {task.time && <div className="task-time">{task.time}</div>}
           {task.description && <div className="task-description">{task.description}</div>}
