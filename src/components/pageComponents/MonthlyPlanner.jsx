@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import "./MonthlyPlanner.css";
 export const API_URL = 'https://backend-academicwellness.onrender.com';
 
@@ -78,6 +78,53 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
     setSelectedDate(dateStr);
   };
 
+  const fetchMonthTasks = useCallback(async () => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+
+  try {
+    const response = await fetch(
+      `${API_URL}/api/planner/tasks/month/?year=${year}&month=${month}&include_empty=false`,
+      {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) throw new Error("Failed to fetch monthly tasks");
+
+    const data = await response.json();
+    console.log("Fetched month data:", data);
+
+    // 🧩 Correctly handle { range, days: [ { date, tasks: [...] } ] }
+    let flatTasks = [];
+
+    if (data && Array.isArray(data.days)) {
+      flatTasks = data.days.flatMap(dayInfo =>
+  (Array.isArray(dayInfo.tasks) ? dayInfo.tasks : []).map(t => ({
+    ...t,
+    date: dayInfo.date.split("T")[0],
+    text: t.title || t.text || "",   // this ensures all tasks show correctly
+  }))
+);
+    }
+
+    console.log("Flattened tasks:", flatTasks);
+    setTasksSafe(flatTasks);
+
+  } catch (err) {
+    console.error("❌ Error fetching monthly tasks:", err);
+  }
+}, [currentDate, setTasksSafe]);
+
+useEffect(() => {
+  fetchMonthTasks();
+}, [fetchMonthTasks]);
+
   const saveTask = async () => {
   if (!formData.text || !selectedDate) return;
 
@@ -89,9 +136,8 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
 
   try {
     const method = editingTaskId ? "PUT" : "POST";
-   
-    const url = editingTaskId 
-      ? `${API_URL}/api/planner/tasks/${editingTaskId}/` 
+    const url = editingTaskId
+      ? `${API_URL}/api/planner/tasks/${editingTaskId}/`
       : `${API_URL}/api/planner/tasks/`;
 
     const response = await fetch(url, {
@@ -106,37 +152,56 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
         description: formData.description,
         priority: formData.priority,
         time: formData.time,
-        allow_reminders: true
+        allow_reminders: true,
       }),
     });
 
     if (!response.ok) {
-      const errMsg = await response.json();
-      throw new Error(errMsg.detail || "Failed to save task.");
+      const err = await response.json();
+      throw new Error(err.detail || "Failed to save task.");
     }
 
+    // --- Parse returned data
     const savedTask = await response.json();
-    const formattedTask = { ...savedTask, text: savedTask.title };
 
-    setTasksSafe(prev => {
-      if (editingTaskId) {
-        return prev.map(t => t.id === editingTaskId ? formattedTask : t);
-      } else {
-        return [...prev, formattedTask];
-      }
-    });
+    // --- Normalize the date AFTER we have savedTask
+    const normalizeDate = (val) => {
+      if (!val) return selectedDate;
+      if (typeof val === "string") return val.split("T")[0];
+      const d = new Date(val);
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${d.getFullYear()}-${m}-${day}`;
+    };
 
+    const formattedTask = {
+      ...savedTask,
+      text: savedTask.title || formData.text,
+      date: normalizeDate(savedTask.date || selectedDate),
+    };
+
+    // --- Show immediately
+    setTasksSafe(prev =>
+      editingTaskId
+        ? prev.map(t => (t.id === editingTaskId ? formattedTask : t))
+        : [...prev, formattedTask]
+    );
+
+    // --- Optionally sync backend in background
+    setTimeout(() => {
+  fetchMonthTasks();
+}, 1000);
+
+    // --- Reset form
     setFormData({ text: "", priority: "medium", description: "", time: "" });
     setSelectedDate(null);
     setEditingTaskId(null);
 
-  } catch (error) {
-    console.error("❌ Error saving task:", error);
-    alert(`❌ Error: ${error.message}`);
+  } catch (err) {
+    console.error("❌ Error saving task:", err);
+    alert(`❌ Error: ${err.message}`);
   }
 };
-
-
   const deleteTask = async (id) => {
   const token = localStorage.getItem("token");
   if (!token) {
@@ -154,10 +219,12 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
         "Authorization": `Bearer ${token}`
       }
     });
+    await fetchMonthTasks(); 
 
     if (!response.ok && response.status !== 204) throw new Error("Failed to delete task");
 
     setTasksSafe(prev => prev.filter(t => t.id !== id));
+    fetchMonthTasks();
     setSelectedDate(null);
     setEditingTaskId(null);
 
