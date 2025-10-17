@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-import Navbar from "./Navbar";
 import "./Auth.css";
+import Navbar from "./Navbar";
 import bgImage from "./academics.jpg";
 
 function Register() {
@@ -10,7 +10,7 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [studentType, setStudentType] = useState("First-year"); // default role
+  const [studentType, setStudentType] = useState("First-year");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -26,6 +26,17 @@ function Register() {
     setError("");
     setLoading(true);
 
+    // DEBUG LOGS
+    console.log("🔍 REGISTRATION DEBUG:");
+    console.log("Selected student_type:", studentType);
+    console.log("Sending to backend:", {
+      full_name: fullName,
+      email: email,
+      password: password,
+      confirm_password: confirmPassword,
+      student_type: studentType,
+    });
+
     try {
       const response = await fetch(
         "https://backend-academicwellness.onrender.com/api/auth/register/",
@@ -39,22 +50,34 @@ function Register() {
             email: email,
             password: password,
             confirm_password: confirmPassword,
-            student_type: studentType, // exact value matches backend roles
+            student_type: studentType,
           }),
         }
       );
 
       const data = await response.json();
+      
+      // DEBUG LOGS
+      console.log("🔍 REGISTRATION RESPONSE:");
+      console.log("Response status:", response.status);
+      console.log("Response data:", data);
+      console.log("User data returned:", data.user);
+      console.log("Profile in response:", data.user?.profile);
+      console.log("Student type in response:", data.user?.profile?.student_type);
+      
       setLoading(false);
 
       if (response.ok) {
+        console.log("✅ Registration successful!");
         alert("Registration successful! You can now log in.");
         navigate("/login");
       } else {
-        setError(data.message || "Registration failed. Please try again.");
+        console.log("❌ Registration failed");
+        setError(data.message || data.detail || "Registration failed. Please try again.");
       }
     } catch (err) {
       setLoading(false);
+      console.log("❌ Network error:", err);
       setError("Network error. Please check your connection.");
     }
   };

@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-import Navbar from "./Navbar";
 import "./Auth.css";
+import Navbar from "./Navbar";
 import bgImage from "./academics.jpg";
 
 function Login() {
@@ -26,19 +26,42 @@ function Login() {
           body: JSON.stringify({ identifier: email, password }),
         }
       );
+      
       const data = await response.json();
+      
+      // DEBUG LOGS
+      console.log("🔍 LOGIN DEBUG:");
+      console.log("Login response status:", response.status);
+      console.log("Full login response:", data);
+      console.log("User object:", data.user);
+      console.log("Profile object:", data.user?.profile);
+      console.log("Student type in profile:", data.user?.profile?.student_type);
+      console.log("Has student_type?", !!data.user?.profile?.student_type);
+      
       setLoading(false);
 
       if (response.ok) {
+        console.log("✅ Login successful!");
+        
+        // Store both access and refresh tokens
         localStorage.setItem("token", data.tokens.access);
+        localStorage.setItem("refresh_token", data.tokens.refresh);
         localStorage.setItem("user", JSON.stringify(data.user));
+        
+        // Check what we stored
+        console.log("🔍 STORED USER DATA:");
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        console.log("Stored user:", storedUser);
+        console.log("Stored profile:", storedUser?.profile);
+        console.log("Stored student_type:", storedUser?.profile?.student_type);
+        
         alert("Login successful!");
         navigate("/dashboard");
       } else {
-        setError(data.message || "Invalid email or password.");
+        setError(data.message || data.detail || "Invalid email or password.");
       }
     } catch (err) {
-      console.error(err);
+      console.error("❌ Login error:", err);
       setError("An error occurred while logging in. Please try again.");
       setLoading(false);
     }
@@ -64,7 +87,7 @@ function Login() {
           </button>
         </div>
         <p className="auth-footer">
-          Don’t have an account? <Link to="/register" className="link">Register</Link>
+          Don't have an account? <Link to="/register" className="link">Register</Link>
         </p>
       </form>
     </div>
