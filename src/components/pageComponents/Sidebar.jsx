@@ -1,29 +1,21 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  FaHome,
-  FaCalendarAlt,
-  FaCalendarCheck,
-  FaComments,
-  FaSignOutAlt,
-  FaGraduationCap,
-} from "react-icons/fa";
+import { FaHome, FaCalendarAlt, FaCalendarCheck, FaComments, FaSignOutAlt, FaGraduationCap } from "react-icons/fa";
 import "./Sidebar.css";
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
   const user = JSON.parse(localStorage.getItem("user"));
   if (!user) {
-    navigate("/login"); // Redirect if not logged in
+    navigate("/login");
     return null;
   }
 
-  const studentType = (user?.student_type || "").trim();
+  const studentType = (user?.profile?.student_type || "").toLowerCase();
 
   const wtdPath =
-    studentType === "Moderator"
+    studentType === "moderator"
       ? "/dashboard/moderator-difference"
       : "/dashboard/whats-the-difference";
 

@@ -26,25 +26,12 @@ function Register() {
     setError("");
     setLoading(true);
 
-    // DEBUG LOGS
-    console.log("🔍 REGISTRATION DEBUG:");
-    console.log("Selected student_type:", studentType);
-    console.log("Sending to backend:", {
-      full_name: fullName,
-      email: email,
-      password: password,
-      confirm_password: confirmPassword,
-      student_type: studentType,
-    });
-
     try {
       const response = await fetch(
         "https://backend-academicwellness.onrender.com/api/auth/register/",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             full_name: fullName,
             email: email,
@@ -56,28 +43,16 @@ function Register() {
       );
 
       const data = await response.json();
-      
-      // DEBUG LOGS
-      console.log("🔍 REGISTRATION RESPONSE:");
-      console.log("Response status:", response.status);
-      console.log("Response data:", data);
-      console.log("User data returned:", data.user);
-      console.log("Profile in response:", data.user?.profile);
-      console.log("Student type in response:", data.user?.profile?.student_type);
-      
       setLoading(false);
 
       if (response.ok) {
-        console.log("✅ Registration successful!");
         alert("Registration successful! You can now log in.");
         navigate("/login");
       } else {
-        console.log("❌ Registration failed");
         setError(data.message || data.detail || "Registration failed. Please try again.");
       }
     } catch (err) {
       setLoading(false);
-      console.log("❌ Network error:", err);
       setError("Network error. Please check your connection.");
     }
   };
@@ -95,7 +70,6 @@ function Register() {
           onChange={(e) => setFullName(e.target.value)}
           required
         />
-
         <input
           type="email"
           placeholder="Email"
@@ -103,7 +77,6 @@ function Register() {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-
         <input
           type="password"
           placeholder="Password"
@@ -111,7 +84,6 @@ function Register() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-
         <input
           type="password"
           placeholder="Confirm Password"
@@ -128,7 +100,6 @@ function Register() {
         >
           <option value="First-year">First-year</option>
           <option value="Senior">Senior</option>
-          <option value="Moderator">Moderator</option>
         </select>
 
         {error && <div className="error-msg">{error}</div>}
@@ -145,10 +116,7 @@ function Register() {
         </div>
 
         <p className="auth-footer">
-          Already have an account?{" "}
-          <Link to="/login" className="link">
-            Login
-          </Link>
+          Already have an account? <Link to="/login" className="link">Login</Link>
         </p>
       </form>
     </div>

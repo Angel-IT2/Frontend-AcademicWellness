@@ -12,13 +12,8 @@ const Dashboard = () => {
     }
   }, [storedUser, navigate]);
 
-  // Determine WhatsTheDifference link based on role - FIXED to use profile.student_type
   const getWTDLink = () => {
     if (!storedUser) return "/login";
-    
-    const studentType = storedUser?.profile?.student_type;
-    
-    // Use the new single route that automatically routes based on role
     return "/dashboard/whats-the-difference";
   };
 
@@ -30,8 +25,7 @@ const Dashboard = () => {
     { step: "5. Setup a Monthly Plan", link: "/dashboard/monthly-planner" },
   ];
 
-  // Get user role for display
-  const userRole = storedUser?.profile?.student_type || 'Student';
+  const userRole = storedUser?.profile?.student_type || 'student';
   const userName = storedUser?.profile?.full_name || storedUser?.first_name || 'Student';
 
   return (
