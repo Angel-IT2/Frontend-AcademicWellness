@@ -22,40 +22,25 @@ const ModeratorDifference = lazy(() => import("./components/pageComponents/Moder
 const FirstYearDifference = lazy(() => import("./components/pageComponents/FirstYearDifference"));
 const SeniorDifference = lazy(() => import("./components/pageComponents/SeniorDifference"));
 
-// Create a separate component for the router that includes Suspense
 const WTDRouterContent = () => {
   const user = JSON.parse(localStorage.getItem("user"));
-  
-  console.log("🔍 WTDRouter - User:", user);
-  console.log("🔍 WTDRouter - Student type from profile:", user?.profile?.student_type);
-  
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
+  if (!user) return <Navigate to="/login" />;
 
-  // Get student_type from profile object
-  const studentType = user?.profile?.student_type;
-  
-  console.log("🔍 Student type:", studentType);
+  const studentType = user?.profile?.student_type?.toLowerCase();
 
-  // Route to specific component for each role
   switch(studentType) {
     case "moderator":
-      console.log("🎯 Rendering ModeratorDifference");
       return <ModeratorDifference />;
     case "senior":
-      console.log("🎯 Rendering SeniorDifference");
       return <SeniorDifference />;
+    case "first-year":
     case "first_year":
-      console.log("🎯 Rendering FirstYearDifference");
       return <FirstYearDifference />;
     default:
-      console.log("⚠️ Unknown role, defaulting to FirstYearDifference");
       return <FirstYearDifference />;
   }
 };
 
-// Wrap the router content with Suspense
 const WTDRouter = () => (
   <Suspense fallback={<div style={{ padding: "20px" }}>Loading WTD...</div>}>
     <WTDRouterContent />
@@ -65,18 +50,13 @@ const WTDRouter = () => (
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const user = JSON.parse(localStorage.getItem("user"));
   if (!user) return <Navigate to="/login" />;
-  
-  // Update to check profile.student_type (FIXED)
-  const studentType = user?.profile?.student_type;
-  console.log("🔍 ProtectedRoute - Student type:", studentType);
-  console.log("🔍 ProtectedRoute - Allowed roles:", allowedRoles);
-  
+
+  const studentType = user?.profile?.student_type?.toLowerCase();
+
   if (allowedRoles && !allowedRoles.includes(studentType)) {
-    console.log("❌ Access denied - role not allowed");
     return <Navigate to="/dashboard" />;
   }
-  
-  console.log("✅ Access granted");
+
   return children;
 };
 
@@ -107,16 +87,14 @@ function App() {
                 <Route index element={<Dashboard />} />
                 <Route path="profile" element={<Profile />} />
                 
-                {/* Single WTD route that automatically routes based on role */}
                 <Route path="whats-the-difference" element={
                   <ProtectedRoute>
                     <WTDRouter />
                   </ProtectedRoute>
                 } />
                 
-                {/* Keep moderator-difference as a direct route for specific access */}
                 <Route path="moderator-difference" element={
-                  <ProtectedRoute allowedRoles={["moderator"]}> {/* Updated to lowercase */}
+                  <ProtectedRoute allowedRoles={["moderator"]}>
                     <ModeratorDifference />
                   </ProtectedRoute>
                 } />
