@@ -10,8 +10,8 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
   const setTasksSafe = propSetTasks || setTasks;
 
   useEffect(() => {
-  if (!propSetTasks) setTasks(propTasks);
-}, [propTasks, propSetTasks]);
+  setTasks(propTasks);
+}, [propTasks]);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
@@ -78,52 +78,61 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
     setSelectedDate(dateStr);
   };
 
-  const fetchMonthTasks = useCallback(async () => {
+  const fetchAllTasks = useCallback(async () => {
   const token = localStorage.getItem("token");
-  if (!token) return;
-
-  const year = currentDate.getFullYear();
-  const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+  if (!token) {
+    console.log("No token found, user is not logged in.");
+    return;
+  }
 
   try {
-    const response = await fetch(
-      `${API_URL}/api/planner/tasks/month/?year=${year}&month=${month}&include_empty=false`,
-      {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (!response.ok) throw new Error("Failed to fetch monthly tasks");
-
-    const data = await response.json();
-    console.log("Fetched month data:", data);
-
-    // 🧩 Correctly handle { range, days: [ { date, tasks: [...] } ] }
-    let flatTasks = [];
-
-    if (data && Array.isArray(data.days)) {
-      flatTasks = data.days.flatMap(dayInfo =>
-  (Array.isArray(dayInfo.tasks) ? dayInfo.tasks : []).map(t => ({
-    ...t,
-    date: dayInfo.date.split("T")[0],
-    text: t.title || t.text || "",   // this ensures all tasks show correctly
-  }))
-);
+    console.log("📡 Fetching ALL tasks from the backend...");
+    // We use the base tasks endpoint to get everything
+    const response = await fetch(`${API_URL}/api/planner/tasks/`, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch tasks. Status: ${response.status}`);
     }
 
-    console.log("Flattened tasks:", flatTasks);
-    setTasksSafe(flatTasks);
+    const data = await response.json();
+
+    // The API might return paginated data like { results: [...] } or just an array
+    const taskList = data.results || data; 
+    
+    if (!Array.isArray(taskList)) {
+        console.error("API response was not an array:", data);
+        return;
+    }
+
+   
+    // Normalize the data to ensure it has the fields our component expects
+    const formattedTasks = taskList.map(t => ({
+      ...t,
+      text: t.title || t.text || "", // Unify the text/title property
+      date: t.date.split("T")[0],    // Ensure date is in YYYY-MM-DD format
+    }));
+
+    console.log(`✅ Loaded all ${formattedTasks.length} tasks successfully.`);
+    setTasksSafe(formattedTasks); // Update the state with the complete list
 
   } catch (err) {
-    console.error("❌ Error fetching monthly tasks:", err);
+    console.error("❌ Error fetching all tasks:", err);
   }
-}, [currentDate, setTasksSafe]);
+}, [setTasksSafe]); // Dependency is only the setter function
 
+
+// ADD THIS NEW useEffect HOOK TO CALL THE FUNCTION ONCE
 useEffect(() => {
-  fetchMonthTasks();
-}, [fetchMonthTasks]);
+  fetchAllTasks();
+  // The empty array [] ensures this effect runs only once when the component mounts.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
+
+
 
   const saveTask = async () => {
   if (!formData.text || !selectedDate) return;
@@ -187,11 +196,6 @@ useEffect(() => {
         : [...prev, formattedTask]
     );
 
-    // --- Optionally sync backend in background
-    setTimeout(() => {
-  fetchMonthTasks();
-}, 1000);
-
     // --- Reset form
     setFormData({ text: "", priority: "medium", description: "", time: "" });
     setSelectedDate(null);
@@ -219,12 +223,10 @@ useEffect(() => {
         "Authorization": `Bearer ${token}`
       }
     });
-    await fetchMonthTasks(); 
-
-    if (!response.ok && response.status !== 204) throw new Error("Failed to delete task");
+    
+    if (!response.ok && response.status !== 240) throw new Error("Failed to delete task");
 
     setTasksSafe(prev => prev.filter(t => t.id !== id));
-    fetchMonthTasks();
     setSelectedDate(null);
     setEditingTaskId(null);
 
@@ -384,8 +386,28 @@ const currentMonthTasks = tasks.filter((t) => {
                       />
                     ))}
                   </ul>
+                 
+                </div>
+              );
+            })}
+          </div>
 
-                  {(selectedDate || editingTaskId) && day && (
+          {/* Legend */}
+          <div className="calendar-legend">
+            <div className="legend-item">
+              <span className="legend-color legend-high"></span> High Priority
+            </div>
+            <div className="legend-item">
+              <span className="legend-color legend-medium"></span> Medium Priority
+            </div>
+            <div className="legend-item">
+              <span className="legend-color legend-low"></span> Low Priority
+            </div>
+          </div>
+        </div>
+      </main>
+
+       {(selectedDate || editingTaskId) &&(
                     <div className="modal-overlay">
                       <div
                         className="modal"
@@ -431,25 +453,7 @@ const currentMonthTasks = tasks.filter((t) => {
                       </div>
                     </div>
                   )}
-                </div>
-              );
-            })}
-          </div>
 
-          {/* Legend */}
-          <div className="calendar-legend">
-            <div className="legend-item">
-              <span className="legend-color legend-high"></span> High Priority
-            </div>
-            <div className="legend-item">
-              <span className="legend-color legend-medium"></span> Medium Priority
-            </div>
-            <div className="legend-item">
-              <span className="legend-color legend-low"></span> Low Priority
-            </div>
-          </div>
-        </div>
-      </main>
         {/* Detailed Tasks Section */}
 <div className="tasks-panel">
   <h2>Tasks for {monthName}</h2>
@@ -527,7 +531,7 @@ const TaskItem = ({ task, deleteTask, startEditingTask, editingTaskId, formData,
               <button onClick={() => startEditingTask(task)}>✎</button>
               <button onClick={() => deleteTask(task.id)}>×</button>
             </div>
-            )};
+            )}
           </div>
           {task.time && <div className="task-time">{task.time}</div>}
           {task.description && <div className="task-description">{task.description}</div>}
