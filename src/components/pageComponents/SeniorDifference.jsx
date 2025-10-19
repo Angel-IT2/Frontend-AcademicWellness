@@ -18,13 +18,9 @@ const SeniorDifference = () => {
     try {
       setLoading(true);
       setError("");
-
       if (!user) return;
 
-      // Fetch only posts created by the logged-in senior
       const data = await apiRequest("/api/wtd/posts/", "GET", null, { author_id: user.id });
-
-      // Only include posts with status "approved"
       const filtered = Array.isArray(data) ? data.filter(post => post.status === "approved") : [];
       setPosts(filtered);
     } catch (err) {
@@ -44,16 +40,10 @@ const SeniorDifference = () => {
     try {
       setLoading(true);
       setError("");
-      await apiRequest("/api/wtd/posts/", "POST", {
-        title: newPost.title,
-        content: newPost.content
-      });
-
+      await apiRequest("/api/wtd/posts/", "POST", { title: newPost.title, content: newPost.content });
       setNewPost({ title: "", content: "" });
       setShowForm(false);
-      await fetchPosts(); // Refresh senior's own posts
-
-      // Trigger a "new post" event for moderators
+      fetchPosts();
       localStorage.setItem("newWTDPost", Date.now());
     } catch (err) {
       console.error("Error creating post:", err);
@@ -63,25 +53,16 @@ const SeniorDifference = () => {
     }
   };
 
-  const getInitials = (username) => username ? username.charAt(0).toUpperCase() : "U";
-
-  const getStatusTag = (status) => {
-    const statusConfig = {
-      approved: { text: "Approved", class: "approved" },
-    };
-    const config = statusConfig[status] || { text: status, class: "default" };
-    return <span className={`tag ${config.class}`}>{config.text}</span>;
-  };
+  const getInitials = (username) => (username ? username.charAt(0).toUpperCase() : "U");
 
   return (
     <div className="container">
       <h4>What's The Difference - Senior Hub</h4>
       <p className="wdifference-caption">Share your knowledge and guide first-year students</p>
 
-      <div style={{ background: '#d1f7d6', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #a3e9a4' }}>
-        <h3>🌟 Welcome, Senior Student!</h3>
-        <p>Share your academic experiences and insights to help first-year students navigate university life. Your posts will be reviewed by moderators before being published.</p>
-      </div>
+      <button className="reply-btn" onClick={fetchPosts} disabled={loading} style={{ marginBottom: "20px" }}>
+        🔄 Refresh My Posts
+      </button>
 
       <button id="toggleFormBtn" onClick={() => setShowForm(!showForm)} disabled={loading}>
         {showForm ? "Cancel" : "Create New Post"}
@@ -125,7 +106,7 @@ const SeniorDifference = () => {
             <div key={post.id} className="post">
               <div className="post-header">
                 <span>Your Post #{post.id}</span>
-                {getStatusTag(post.status)}
+                <span className="tag approved">Approved</span>
               </div>
               <div className="post-body">
                 <div className="user">
