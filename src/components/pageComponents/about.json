@@ -1,35 +1,40 @@
 {
-  "title": "UniPath: Your First-Year Companion",
-  "subtitle": "A peer-powered platform supporting academic and social wellbeing.",
+  "title": "UniPath: Empowering Academic Wellness",
+  "subtitle": "A peer-powered platform that helps first-year university students achieve academic balance, confidence, and success.",
   "sections": [
     {
-      "heading": "Academic Wellbeing",
+      "heading": "Building Academic Wellness",
       "items": [
-        "Academic planning tools & resources",
-        "Peer chatrooms for academic help",
-        "Faculty-specific tips from seniors"
+        "Personalized academic planning tools and study resources",
+        "Peer mentorship and collaborative learning communities",
+        "Faculty-specific guidance and tips from experienced students",
+        "Time management and academic adjustment strategies"
       ]
     },
     {
-      "heading": "Social Wellbeing",
+      "heading": "Supporting the Whole Student",
       "items": [
-        "Chatrooms to connect students",
-        "Event boards & social peer advice",
-        "Safe space for students to ask & share"
+        "Encouraging peer connection and a sense of belonging",
+        "Providing mental and emotional support through shared experiences",
+        "Creating a safe space for academic and personal growth"
       ]
-      
     }
   ],
   "benefits": {
-    "Stronger Academic Wellbeing": [
-      "First-years get practical academic support from experienced peers",
-      "Peer-led advice on study techniques, planning, and adjustment",
-      "Access to chatrooms for specific courses or academic discussions"
+    "Why Academic Wellness Matters": [
+      "Improves focus, motivation, and academic confidence",
+      "Promotes healthy study habits and sustainable learning routines",
+      "Prevents burnout through balance and peer support"
     ],
-    "Better Social Wellbeing": [
-      "Open peer chatrooms foster connection and reduce isolation",
-      "Shared advice on navigating campus life, services, and social tips",
-      "Encourages community building across faculties"
+    "How UniPath Supports Academic Growth": [
+      "Connects first-year students with senior mentors for practical guidance",
+      "Provides structured tools for organizing study schedules and resources",
+      "Encourages collaboration and knowledge-sharing across faculties"
+    ],
+    "Long-Term Impact": [
+      "Empowers students to take control of their academic journey",
+      "Strengthens resilience, discipline, and self-directed learning",
+      "Creates a culture of support, growth, and academic excellence"
     ]
   }
 }
