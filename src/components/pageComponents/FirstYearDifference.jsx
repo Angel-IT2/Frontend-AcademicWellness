@@ -11,21 +11,11 @@ const FirstYearDifference = () => {
   useEffect(() => {
     fetchPosts();
 
-    // Poll every 5 seconds
-    const intervalId = setInterval(fetchPosts, 5000);
-
-    // Listen for new approved posts from seniors/moderators
     const handleStorage = (event) => {
-      if (event.key === "newWTDPost") {
-        fetchPosts();
-      }
+      if (event.key === "newWTDPost") fetchPosts();
     };
     window.addEventListener("storage", handleStorage);
-
-    return () => {
-      clearInterval(intervalId);
-      window.removeEventListener("storage", handleStorage);
-    };
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
   const fetchPosts = async () => {
@@ -46,70 +36,55 @@ const FirstYearDifference = () => {
     try {
       setError("");
       await apiRequest(`/api/wtd/posts/${postId}/helpful/`, "POST");
-      fetchPosts(); // Refresh to update helpful count
+      fetchPosts();
     } catch (err) {
       console.error("Error marking helpful:", err);
       setError("Failed to mark as helpful: " + err.message);
     }
   };
 
-  const getInitials = (username) => username ? username.charAt(0).toUpperCase() : "U";
+  const getInitials = (username) => (username ? username.charAt(0).toUpperCase() : "U");
 
   return (
     <div className="container">
       <h4>What's The Difference - First Year Hub</h4>
       <p className="wdifference-caption">Learn from experienced students and get answers to your questions</p>
 
-      <div style={{ background: '#e8f4fd', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #b6d7fe' }}>
-        <h3>🎓 Welcome, First-Year Student!</h3>
-        <p>This is your space to learn from seniors and moderators. Browse approved posts and mark them as helpful if they answer your questions.</p>
-      </div>
+      <button className="reply-btn" onClick={fetchPosts} disabled={loading} style={{ marginBottom: "20px" }}>
+        🔄 Refresh Posts
+      </button>
 
-      {error && (
-        <div style={{ background: '#f8d7da', color: '#721c24', padding: '12px', borderRadius: '4px', marginBottom: '20px', border: '1px solid #f5c6cb' }}>
-          {error}
-        </div>
-      )}
+      {error && <div style={{ background: '#f8d7da', color: '#721c24', padding: '12px', borderRadius: '4px', marginBottom: '20px', border: '1px solid #f5c6cb' }}>{error}</div>}
 
       <div className="posts-container">
         {loading && <div style={{ textAlign: 'center', padding: '20px' }}>Loading posts...</div>}
-
-        {!loading && posts.length > 0 ? (
-          posts.map((post) => (
-            <div key={post.id} className="post">
-              <div className="post-header">
-                <span>Question #{post.id}</span>
-                <span className="tag approved">Approved</span>
-              </div>
-
-              <div className="post-body">
-                <div className="user">
-                  <div className="avatar">{getInitials(post.author_username)}</div>
-                  <div className="user-info">
-                    <strong>{post.author_username}</strong>
-                    <small>{new Date(post.created_at).toLocaleDateString()}</small>
-                  </div>
-                </div>
-
-                <h3>{post.title}</h3>
-                <div className="body-text">{post.content}</div>
-
-                <div className="actions">
-                  <button onClick={() => handleHelpful(post.id)}>
-                    👍 Helpful ({post.helpful_count})
-                  </button>
-                  <button className="reply-btn">💬 Ask Follow-up Question</button>
+        {!loading && posts.length > 0 ? posts.map((post) => (
+          <div key={post.id} className="post">
+            <div className="post-header">
+              <span>Question #{post.id}</span>
+              <span className="tag approved">Approved</span>
+            </div>
+            <div className="post-body">
+              <div className="user">
+                <div className="avatar">{getInitials(post.author_username)}</div>
+                <div className="user-info">
+                  <strong>{post.author_username}</strong>
+                  <small>{new Date(post.created_at).toLocaleDateString()}</small>
                 </div>
               </div>
+              <h3>{post.title}</h3>
+              <div className="body-text">{post.content}</div>
+              <div className="actions">
+                <button onClick={() => handleHelpful(post.id)}>👍 Helpful ({post.helpful_count})</button>
+                <button className="reply-btn">💬 Ask Follow-up Question</button>
+              </div>
             </div>
-          ))
-        ) : (
-          !loading && (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-              <h3>No approved posts yet</h3>
-              <p>Check back later for helpful insights from senior students!</p>
-            </div>
-          )
+          </div>
+        )) : !loading && (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+            <h3>No approved posts yet</h3>
+            <p>Check back later for helpful insights from senior students!</p>
+          </div>
         )}
       </div>
     </div>
