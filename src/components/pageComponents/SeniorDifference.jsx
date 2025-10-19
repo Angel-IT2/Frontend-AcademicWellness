@@ -18,9 +18,15 @@ const SeniorDifference = () => {
     try {
       setLoading(true);
       setError("");
-      // Seniors can see their own posts and approved posts
-      const data = await apiRequest("/api/wtd/posts/", "GET", null, { mine: "1" });
-      setPosts(Array.isArray(data) ? data : []);
+
+      if (!user) return;
+
+      // Fetch only posts created by the logged-in senior
+      const data = await apiRequest("/api/wtd/posts/", "GET", null, { author_id: user.id });
+
+      // Only include posts with status "approved"
+      const filtered = Array.isArray(data) ? data.filter(post => post.status === "approved") : [];
+      setPosts(filtered);
     } catch (err) {
       console.error("Error fetching posts:", err);
       setError("Failed to load posts: " + err.message);
@@ -42,10 +48,13 @@ const SeniorDifference = () => {
         title: newPost.title,
         content: newPost.content
       });
-      
+
       setNewPost({ title: "", content: "" });
       setShowForm(false);
-      await fetchPosts(); // Refresh posts
+      await fetchPosts(); // Refresh senior's own posts
+
+      // Trigger a "new post" event for moderators
+      localStorage.setItem("newWTDPost", Date.now());
     } catch (err) {
       console.error("Error creating post:", err);
       setError("Failed to create post: " + err.message);
@@ -54,17 +63,12 @@ const SeniorDifference = () => {
     }
   };
 
-  const getInitials = (username) => {
-    return username ? username.charAt(0).toUpperCase() : "U";
-  };
+  const getInitials = (username) => username ? username.charAt(0).toUpperCase() : "U";
 
   const getStatusTag = (status) => {
     const statusConfig = {
       approved: { text: "Approved", class: "approved" },
-      pending: { text: "Pending Review", class: "pending" },
-      rejected: { text: "Rejected", class: "rejected" }
     };
-    
     const config = statusConfig[status] || { text: status, class: "default" };
     return <span className={`tag ${config.class}`}>{config.text}</span>;
   };
@@ -74,24 +78,12 @@ const SeniorDifference = () => {
       <h4>What's The Difference - Senior Hub</h4>
       <p className="wdifference-caption">Share your knowledge and guide first-year students</p>
 
-      {/* Senior-specific welcome */}
-      <div style={{ 
-        background: '#d1f7d6', 
-        padding: '20px', 
-        borderRadius: '8px', 
-        marginBottom: '20px',
-        border: '1px solid #a3e9a4'
-      }}>
+      <div style={{ background: '#d1f7d6', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #a3e9a4' }}>
         <h3>🌟 Welcome, Senior Student!</h3>
         <p>Share your academic experiences and insights to help first-year students navigate university life. Your posts will be reviewed by moderators before being published.</p>
       </div>
 
-      {/* Post Creation */}
-      <button 
-        id="toggleFormBtn" 
-        onClick={() => setShowForm(!showForm)}
-        disabled={loading}
-      >
+      <button id="toggleFormBtn" onClick={() => setShowForm(!showForm)} disabled={loading}>
         {showForm ? "Cancel" : "Create New Post"}
       </button>
 
@@ -119,23 +111,15 @@ const SeniorDifference = () => {
       )}
 
       {error && (
-        <div style={{ 
-          background: '#f8d7da', 
-          color: '#721c24', 
-          padding: '12px', 
-          borderRadius: '4px', 
-          marginBottom: '20px',
-          border: '1px solid #f5c6cb'
-        }}>
+        <div style={{ background: '#f8d7da', color: '#721c24', padding: '12px', borderRadius: '4px', marginBottom: '20px', border: '1px solid #f5c6cb' }}>
           {error}
         </div>
       )}
 
-      {/* My Posts */}
       <div className="posts-container">
         <h3>Your Posts</h3>
         {loading && <div style={{ textAlign: 'center', padding: '20px' }}>Loading your posts...</div>}
-        
+
         {!loading && posts.length > 0 ? (
           posts.map((post) => (
             <div key={post.id} className="post">
@@ -143,46 +127,27 @@ const SeniorDifference = () => {
                 <span>Your Post #{post.id}</span>
                 {getStatusTag(post.status)}
               </div>
-              
               <div className="post-body">
                 <div className="user">
-                  <div className="avatar">
-                    {getInitials(post.author_username)}
-                  </div>
+                  <div className="avatar">{getInitials(post.author_username)}</div>
                   <div className="user-info">
                     <strong>You</strong>
                     <small>{new Date(post.created_at).toLocaleDateString()}</small>
                   </div>
                 </div>
-                
                 <h3>{post.title}</h3>
-                <div className="body-text">
-                  {post.content}
-                </div>
-                
+                <div className="body-text">{post.content}</div>
                 <div className="actions">
                   <span>👍 {post.helpful_count} first-years found this helpful</span>
-                  {post.status === "pending" && (
-                    <span style={{ color: '#856404', fontStyle: 'italic' }}>
-                      ⏳ Awaiting moderator approval
-                    </span>
-                  )}
-                  {post.status === "rejected" && (
-                    <span style={{ color: '#721c24', fontStyle: 'italic' }}>
-                      ❌ Not approved
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
           ))
-        ) : (
-          !loading && (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-              <h3>No posts yet</h3>
-              <p>Create your first post to share your knowledge with first-year students!</p>
-            </div>
-          )
+        ) : !loading && (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+            <h3>No posts yet</h3>
+            <p>Create your first post to share your knowledge with first-year students!</p>
+          </div>
         )}
       </div>
     </div>
