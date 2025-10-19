@@ -345,3 +345,86 @@
   font-style: italic;
   color: #555;
 }
+/* ---------- MOBILE RESPONSIVE: SIDEBAR DRAWER ---------- */
+@media (max-width: 600px) {
+
+  /* Hide the original, static sidebar on mobile */
+  .chatbox-container-simplified > .chatbox-sidebar {
+    display: none;
+  }
+  
+  /* --- HAMBURGER BUTTON --- */
+  .mobile-hamburger {
+    /* Position it relative to the main chatbox area */
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 100; /* Needs to be above the chat header */
+  }
+  .mobile-hamburger button {
+    font-size: 1.5rem;
+    background: #4da6ff;
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+
+  /* --- SIDEBAR WRAPPER & OVERLAY (Main change is here) --- */
+  .mobile-sidebar-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* This makes it invisible but clickable when closed */
+    visibility: hidden; 
+    z-index: 1000;
+  }
+
+  /* When open, the wrapper becomes visible */
+  .mobile-sidebar-wrapper.open {
+    visibility: visible;
+  }
+
+  /* Dark backdrop overlay */
+  .sidebar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .mobile-sidebar-wrapper.open .sidebar-overlay {
+    opacity: 1;
+  }
+
+  /* The actual sidebar that slides in */
+  .mobile-sidebar-wrapper .chatbox-sidebar {
+    display: flex; /* This is the one we want to see */
+    flex-direction: column;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100%;
+    background: #e6f0ff;
+    border-right: 1px solid #cce0ff;
+    box-shadow: 3px 0 15px rgba(0,0,0,0.2);
+    /* Start off-screen */
+    transform: translateX(-100%); 
+    transition: transform 0.3s ease;
+    z-index: 1001; /* Above the overlay */
+  }
+
+  /* When open, slide it into view */
+  .mobile-sidebar-wrapper.open .chatbox-sidebar {
+    transform: translateX(0);
+  }
+}

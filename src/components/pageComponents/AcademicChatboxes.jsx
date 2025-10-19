@@ -35,6 +35,13 @@ const AcademicChatboxes = () => {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
+const closeSidebar = () => setIsSidebarOpen(false);
+
+
   const transformApiMessage = (apiMsg) => {
     const isCurrentUser = currentUser ? apiMsg.author_username === currentUser.username : false;
     return {
@@ -199,6 +206,8 @@ const AcademicChatboxes = () => {
       </header>
 
       <div className="chatbox-container-simplified">
+      <div className={`mobile-sidebar-wrapper ${isSidebarOpen ? 'open' : ''}`}>
+  <div className="sidebar-overlay" onClick={closeSidebar}></div>
         <div className="chatbox-sidebar">
             <div className="chatbox-sidebar-header">
                 <h3>Academic Chatboxes</h3>
@@ -223,8 +232,12 @@ const AcademicChatboxes = () => {
                 </div>
             </div>
         </div>
+        </div>
 
         <div className="chatbox-main">
+        <div className="mobile-hamburger">
+  <button onClick={toggleSidebar}>☰</button>
+</div>
           <div className="chat-header">
             <div className="channel-header"><h3>{activeChannel}</h3><p>{getChannelDescription()}</p></div>
           </div>
