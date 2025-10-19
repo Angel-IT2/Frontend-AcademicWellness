@@ -137,7 +137,7 @@ const AcademicChatboxes = () => {
   };
   
   const handleDeleteMessage = (messageId) => {
-  if (!window.confirm("Are you sure you want to delete this message?")) return;
+  
 
   // This is the frontend-only "delete" logic.
   // It filters the message out of the current state, making it disappear from the UI.
@@ -181,7 +181,7 @@ const AcademicChatboxes = () => {
   
   const createNewChannel = () => alert("Creating new channels is not supported by the backend API.");
   const getChannelDescription = () => channels.find(ch => ch.id === activeChannel)?.description || '';
-  const isModerator = currentUser?.profile?.student_type?.toLowerCase() === 'moderator';
+  
 
   // The JSX below is unchanged
   return (
@@ -246,9 +246,7 @@ const AcademicChatboxes = () => {
                         {msg.isCurrentUser && (
                             <button className="action-btn" onClick={() => handleStartEdit(msg)}>Edit</button>
                         )}
-                        {isModerator && !msg.isCurrentUser && (
-                            <button className="action-btn delete" onClick={() => handleDeleteMessage(msg.id)}>Delete</button>
-                        )}
+
                     </div>
                   </div>
                 </div>
