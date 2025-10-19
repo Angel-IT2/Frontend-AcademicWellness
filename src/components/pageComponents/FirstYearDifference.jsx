@@ -10,13 +10,28 @@ const FirstYearDifference = () => {
 
   useEffect(() => {
     fetchPosts();
+
+    // Poll every 5 seconds
+    const intervalId = setInterval(fetchPosts, 5000);
+
+    // Listen for new approved posts from seniors/moderators
+    const handleStorage = (event) => {
+      if (event.key === "newWTDPost") {
+        fetchPosts();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
   const fetchPosts = async () => {
     try {
       setLoading(true);
       setError("");
-      // First-years can only see approved posts
       const data = await apiRequest("/api/wtd/posts/", "GET", null, { status: "approved" });
       setPosts(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -38,43 +53,27 @@ const FirstYearDifference = () => {
     }
   };
 
-  const getInitials = (username) => {
-    return username ? username.charAt(0).toUpperCase() : "U";
-  };
+  const getInitials = (username) => username ? username.charAt(0).toUpperCase() : "U";
 
   return (
     <div className="container">
       <h4>What's The Difference - First Year Hub</h4>
       <p className="wdifference-caption">Learn from experienced students and get answers to your questions</p>
 
-      {/* First-year specific welcome */}
-      <div style={{ 
-        background: '#e8f4fd', 
-        padding: '20px', 
-        borderRadius: '8px', 
-        marginBottom: '20px',
-        border: '1px solid #b6d7fe'
-      }}>
+      <div style={{ background: '#e8f4fd', padding: '20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #b6d7fe' }}>
         <h3>🎓 Welcome, First-Year Student!</h3>
         <p>This is your space to learn from seniors and moderators. Browse approved posts and mark them as helpful if they answer your questions.</p>
       </div>
 
       {error && (
-        <div style={{ 
-          background: '#f8d7da', 
-          color: '#721c24', 
-          padding: '12px', 
-          borderRadius: '4px', 
-          marginBottom: '20px',
-          border: '1px solid #f5c6cb'
-        }}>
+        <div style={{ background: '#f8d7da', color: '#721c24', padding: '12px', borderRadius: '4px', marginBottom: '20px', border: '1px solid #f5c6cb' }}>
           {error}
         </div>
       )}
 
       <div className="posts-container">
         {loading && <div style={{ textAlign: 'center', padding: '20px' }}>Loading posts...</div>}
-        
+
         {!loading && posts.length > 0 ? (
           posts.map((post) => (
             <div key={post.id} className="post">
@@ -82,30 +81,24 @@ const FirstYearDifference = () => {
                 <span>Question #{post.id}</span>
                 <span className="tag approved">Approved</span>
               </div>
-              
+
               <div className="post-body">
                 <div className="user">
-                  <div className="avatar">
-                    {getInitials(post.author_username)}
-                  </div>
+                  <div className="avatar">{getInitials(post.author_username)}</div>
                   <div className="user-info">
                     <strong>{post.author_username}</strong>
                     <small>{new Date(post.created_at).toLocaleDateString()}</small>
                   </div>
                 </div>
-                
+
                 <h3>{post.title}</h3>
-                <div className="body-text">
-                  {post.content}
-                </div>
-                
+                <div className="body-text">{post.content}</div>
+
                 <div className="actions">
                   <button onClick={() => handleHelpful(post.id)}>
                     👍 Helpful ({post.helpful_count})
                   </button>
-                  <button className="reply-btn">
-                    💬 Ask Follow-up Question
-                  </button>
+                  <button className="reply-btn">💬 Ask Follow-up Question</button>
                 </div>
               </div>
             </div>
