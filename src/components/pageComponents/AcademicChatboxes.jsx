@@ -35,6 +35,13 @@ const AcademicChatboxes = () => {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
+const closeSidebar = () => setIsSidebarOpen(false);
+
+
   const transformApiMessage = (apiMsg) => {
     const isCurrentUser = currentUser ? apiMsg.author_username === currentUser.username : false;
     return {
@@ -136,20 +143,26 @@ const AcademicChatboxes = () => {
     }
   };
   
-  const handleDeleteMessage = async (messageId) => {
-    const token = getToken();
-    if (!window.confirm("Are you sure you want to delete this message?") || !token) return;
-    try {
-      const response = await fetch(`${API_BASE_URL}/chat/messages/${messageId}/`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.status !== 204) throw new Error('Failed to delete message');
-      await fetchMessages();
-    } catch(error) {
-      console.error("Error deleting message:", error);
-    }
-  };
+  const handleDeleteMessage = (messageId) => {
+  
+
+  // This is the frontend-only "delete" logic.
+  // It filters the message out of the current state, making it disappear from the UI.
+  setMessages(prevMessages => {
+    // Create a new copy of the messages for the active channel
+    const updatedChannelMessages = prevMessages[activeChannel].filter(
+      (msg) => msg.id !== messageId
+    );
+
+    // Return the new state object
+    return {
+      ...prevMessages,
+      [activeChannel]: updatedChannelMessages,
+    };
+  });
+
+  // We are NOT calling fetchMessages() because it would just add the message back from the server.
+};
 
   // --- Effects ---
   useEffect(() => {
@@ -175,7 +188,7 @@ const AcademicChatboxes = () => {
   
   const createNewChannel = () => alert("Creating new channels is not supported by the backend API.");
   const getChannelDescription = () => channels.find(ch => ch.id === activeChannel)?.description || '';
-  const isModerator = currentUser?.profile?.student_type?.toLowerCase() === 'moderator';
+  
 
   // The JSX below is unchanged
   return (
@@ -193,6 +206,8 @@ const AcademicChatboxes = () => {
       </header>
 
       <div className="chatbox-container-simplified">
+      <div className={`mobile-sidebar-wrapper ${isSidebarOpen ? 'open' : ''}`}>
+  <div className="sidebar-overlay" onClick={closeSidebar}></div>
         <div className="chatbox-sidebar">
             <div className="chatbox-sidebar-header">
                 <h3>Academic Chatboxes</h3>
@@ -217,8 +232,12 @@ const AcademicChatboxes = () => {
                 </div>
             </div>
         </div>
+        </div>
 
         <div className="chatbox-main">
+        <div className="mobile-hamburger">
+  <button onClick={toggleSidebar}>☰</button>
+</div>
           <div className="chat-header">
             <div className="channel-header"><h3>{activeChannel}</h3><p>{getChannelDescription()}</p></div>
           </div>
@@ -240,9 +259,7 @@ const AcademicChatboxes = () => {
                         {msg.isCurrentUser && (
                             <button className="action-btn" onClick={() => handleStartEdit(msg)}>Edit</button>
                         )}
-                        {isModerator && !msg.isCurrentUser && (
-                            <button className="action-btn delete" onClick={() => handleDeleteMessage(msg.id)}>Delete</button>
-                        )}
+
                     </div>
                   </div>
                 </div>
