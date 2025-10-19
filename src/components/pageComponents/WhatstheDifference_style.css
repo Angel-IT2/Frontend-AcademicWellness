@@ -311,3 +311,107 @@ h4 {
   color: #666;
   font-style: italic;
 }
+
+/* Additional styles for status tags and error messages */
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  font-weight: 600;
+}
+
+.tag.approved {
+  background: #d1f7d6;
+  color: #155724;
+}
+
+.tag.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.tag.rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.tag.default {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border: 1px solid #f5c6cb;
+}
+
+.posts-container {
+  margin-top: 20px;
+}
+
+/* Moderator specific styles */
+.pending-section {
+  background: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 20px;
+}
+
+.pending-section h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 16px;
+  color: #856404;
+}
+
+.pending-post {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff8e1;
+  border: 1px solid #ffeeba;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.pending-post button {
+  background: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.pending-post button:hover {
+  background: #0b5ed7;
+}
+
+.sort-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.sort-controls select {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  cursor: pointer;
+}

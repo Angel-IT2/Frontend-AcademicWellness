@@ -917,3 +917,107 @@
     max-width: 90%;
   }
 }
+/* --- Styling for Message Actions (Edit/Delete Buttons) --- */
+
+.message-actions {
+  /* This container holds the buttons under a message */
+  margin-top: 5px;
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  /* This styles the 'Edit' button on your own messages */
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 2px 8px;
+  font-size: 0.75em;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.action-btn.delete {
+  /* Specific styling for the delete button if you want it */
+  border-color: rgba(255, 100, 100, 0.5);
+  color: rgba(255, 100, 100, 0.7);
+}
+
+.action-btn.delete:hover {
+  background-color: rgba(255, 100, 100, 0.2);
+  color: #ff8a8a;
+}
+
+
+/* --- Styling for the Input Bar in Edit Mode --- */
+
+.chatbox-input-container {
+  /* Turns the container into a flexbox column to stack elements */
+  display: flex;
+  flex-direction: column;
+  padding: 10px 20px 20px 20px;
+  border-top: 1px solid #4a4a6a;
+  background-color: #39395f; /* Match your theme */
+  position: relative;
+}
+
+.editing-indicator {
+  font-size: 0.8em;
+  color: #a0a0b8;
+  margin-bottom: 8px;
+  width: 100%;
+  text-align: left;
+}
+
+/* This is the new wrapper for the bottom row of buttons */
+.input-actions-wrapper {
+  display: flex;
+  justify-content: space-between; /* Pushes Cancel and Save apart */
+  align-items: center;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.cancel-edit-btn {
+  /* This is the centered 'Cancel' button */
+  background: none;
+  border: none;
+  color: #a0a0b8;
+  cursor: pointer;
+  font-size: 0.9em;
+  text-decoration: none;
+  flex-grow: 1; /* Allows it to take up space to be centered */
+  text-align: center;
+}
+
+.cancel-edit-btn:hover {
+  text-decoration: underline;
+}
+
+/* Override the normal send button style to match the screenshot */
+.send-button {
+  background-color: #2979ff; /* The blue color from your screenshot */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+  flex-shrink: 0; /* Prevents the button from shrinking */
+}
+
+.send-button:hover {
+  background-color: #2962ff;
+}
+
+.send-button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+}

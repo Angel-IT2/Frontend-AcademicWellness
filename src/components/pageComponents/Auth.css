@@ -172,3 +172,30 @@
     padding: 20px;
   }
 }
+/* Select dropdown (student type) */
+.auth-select {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #1a75ff;
+  color: black;
+  height: 45px;
+  width: 100%;
+  font-size: 14px;
+  background-color: white;
+  appearance: none; /* removes default arrow style for consistency */
+  cursor: pointer;
+}
+
+.auth-select:focus {
+  outline: none;
+  border-color: #1558b0;
+  color: black;
+}
+
+/* Optional: add a small arrow icon using background image */
+.auth-select {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width='10'%20height='5'%20viewBox='0%200%2010%205'%20xmlns='http://www.w3.org/2000/svg'%3E%3Cpath%20d='M0%200l5%205%205-5z'%20fill='%231a75ff'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 10px 5px;
+}
