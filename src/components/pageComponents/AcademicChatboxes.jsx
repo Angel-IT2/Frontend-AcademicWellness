@@ -136,20 +136,26 @@ const AcademicChatboxes = () => {
     }
   };
   
-  const handleDeleteMessage = async (messageId) => {
-    const token = getToken();
-    if (!window.confirm("Are you sure you want to delete this message?") || !token) return;
-    try {
-      const response = await fetch(`${API_BASE_URL}/chat/messages/${messageId}/`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.status !== 204) throw new Error('Failed to delete message');
-      await fetchMessages();
-    } catch(error) {
-      console.error("Error deleting message:", error);
-    }
-  };
+  const handleDeleteMessage = (messageId) => {
+  if (!window.confirm("Are you sure you want to delete this message?")) return;
+
+  // This is the frontend-only "delete" logic.
+  // It filters the message out of the current state, making it disappear from the UI.
+  setMessages(prevMessages => {
+    // Create a new copy of the messages for the active channel
+    const updatedChannelMessages = prevMessages[activeChannel].filter(
+      (msg) => msg.id !== messageId
+    );
+
+    // Return the new state object
+    return {
+      ...prevMessages,
+      [activeChannel]: updatedChannelMessages,
+    };
+  });
+
+  // We are NOT calling fetchMessages() because it would just add the message back from the server.
+};
 
   // --- Effects ---
   useEffect(() => {
