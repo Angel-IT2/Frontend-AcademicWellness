@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-import Navbar from "./Navbar";
 import "./Auth.css";
+import Navbar from "./Navbar";
 import bgImage from "./academics.jpg";
 
 function Register() {
@@ -10,7 +10,7 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [studentType, setStudentType] = useState("first_year");
+  const [studentType, setStudentType] = useState("First-year");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -31,9 +31,7 @@ function Register() {
         "https://backend-academicwellness.onrender.com/api/auth/register/",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             full_name: fullName,
             email: email,
@@ -51,7 +49,7 @@ function Register() {
         alert("Registration successful! You can now log in.");
         navigate("/login");
       } else {
-        setError(data.message || "Registration failed. Please try again.");
+        setError(data.message || data.detail || "Registration failed. Please try again.");
       }
     } catch (err) {
       setLoading(false);
@@ -72,7 +70,6 @@ function Register() {
           onChange={(e) => setFullName(e.target.value)}
           required
         />
-
         <input
           type="email"
           placeholder="Email"
@@ -80,7 +77,6 @@ function Register() {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-
         <input
           type="password"
           placeholder="Password"
@@ -88,7 +84,6 @@ function Register() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-
         <input
           type="password"
           placeholder="Confirm Password"
@@ -103,10 +98,8 @@ function Register() {
           required
           className="auth-select"
         >
-          <option value="first_year">First Year</option>
-          <option value="second_year">Second Year</option>
-          <option value="third_year">Third Year</option>
-          <option value="postgraduate">Postgraduate</option>
+          <option value="First-year">First-year</option>
+          <option value="Senior">Senior</option>
         </select>
 
         {error && <div className="error-msg">{error}</div>}
@@ -123,10 +116,7 @@ function Register() {
         </div>
 
         <p className="auth-footer">
-          Already have an account?{" "}
-          <Link to="/login" className="link">
-            Login
-          </Link>
+          Already have an account? <Link to="/login" className="link">Login</Link>
         </p>
       </form>
     </div>

@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import "./MonthlyPlanner.css";
+export const API_URL = 'https://backend-academicwellness.onrender.com';
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const THEME_COLORS = ["#6366f1", "#4a90e2", "#e57373", "#81c784", "#ffb74d"];
@@ -9,8 +10,8 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
   const setTasksSafe = propSetTasks || setTasks;
 
   useEffect(() => {
-    setTasks(propTasks);
-  }, [propTasks]);
+  setTasks(propTasks);
+}, [propTasks]);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
@@ -77,31 +78,174 @@ const MonthlyPlanner = ({ tasks: propTasks = [], setTasks: propSetTasks }) => {
     setSelectedDate(dateStr);
   };
 
-  const saveTask = () => {
-    if (!formData.text || !selectedDate) return;
+  const fetchAllTasks = useCallback(async () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    console.log("No token found, user is not logged in.");
+    return;
+  }
 
-    if (editingTaskId) {
-      setTasksSafe((prev) =>
-        prev.map((t) => (t.id === editingTaskId ? { ...t, ...formData } : t))
-      );
-    } else {
-      setTasksSafe((prev) => [
-        ...prev,
-        { id: Date.now(), date: selectedDate, ...formData },
-      ]);
+  try {
+    console.log("📡 Fetching ALL tasks from the backend...");
+    // We use the base tasks endpoint to get everything
+    const response = await fetch(`${API_URL}/api/planner/tasks/`, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch tasks. Status: ${response.status}`);
     }
 
+    const data = await response.json();
+
+    // The API might return paginated data like { results: [...] } or just an array
+    const taskList = data.results || data; 
+    
+    if (!Array.isArray(taskList)) {
+        console.error("API response was not an array:", data);
+        return;
+    }
+
+   
+    // Normalize the data to ensure it has the fields our component expects
+    const formattedTasks = taskList.map(t => ({
+      ...t,
+      text: t.title || t.text || "", // Unify the text/title property
+      date: t.date.split("T")[0],    // Ensure date is in YYYY-MM-DD format
+    }));
+
+    console.log(`✅ Loaded all ${formattedTasks.length} tasks successfully.`);
+    setTasksSafe(formattedTasks); // Update the state with the complete list
+
+  } catch (err) {
+    console.error("❌ Error fetching all tasks:", err);
+  }
+}, [setTasksSafe]); // Dependency is only the setter function
+
+
+// ADD THIS NEW useEffect HOOK TO CALL THE FUNCTION ONCE
+useEffect(() => {
+  fetchAllTasks();
+  // The empty array [] ensures this effect runs only once when the component mounts.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
+
+
+
+  const saveTask = async () => {
+  if (!formData.text || !selectedDate) return;
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("You must be logged in to save tasks.");
+    return;
+  }
+
+  try {
+    const method = editingTaskId ? "PUT" : "POST";
+    const url = editingTaskId
+      ? `${API_URL}/api/planner/tasks/${editingTaskId}/`
+      : `${API_URL}/api/planner/tasks/`;
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        date: selectedDate,
+        title: formData.text,
+        description: formData.description,
+        priority: formData.priority,
+        time: formData.time,
+        allow_reminders: true,
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.detail || "Failed to save task.");
+    }
+
+    // --- Parse returned data
+    const savedTask = await response.json();
+
+    // --- Normalize the date AFTER we have savedTask
+    const normalizeDate = (val) => {
+      if (!val) return selectedDate;
+      if (typeof val === "string") return val.split("T")[0];
+      const d = new Date(val);
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${d.getFullYear()}-${m}-${day}`;
+    };
+
+    const formattedTask = {
+      ...savedTask,
+      text: savedTask.title || formData.text,
+      date: normalizeDate(savedTask.date || selectedDate),
+    };
+
+    // --- Show immediately
+    setTasksSafe(prev =>
+      editingTaskId
+        ? prev.map(t => (t.id === editingTaskId ? formattedTask : t))
+        : [...prev, formattedTask]
+    );
+
+    // --- Reset form
     setFormData({ text: "", priority: "medium", description: "", time: "" });
     setSelectedDate(null);
     setEditingTaskId(null);
-  };
 
-  const deleteTask = (id) => setTasksSafe((prev) => prev.filter((t) => t.id !== id));
+  } catch (err) {
+    console.error("❌ Error saving task:", err);
+    alert(`❌ Error: ${err.message}`);
+  }
+};
+  const deleteTask = async (id) => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("You must be logged in to delete tasks.");
+    return;
+  }
+
+  if (!window.confirm("Are you sure you want to delete this task?")) return;
+
+  try {
+    const response = await fetch(`${API_URL}/api/planner/tasks/${id}/`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok && response.status !== 240) throw new Error("Failed to delete task");
+
+    setTasksSafe(prev => prev.filter(t => t.id !== id));
+    setSelectedDate(null);
+    setEditingTaskId(null);
+
+  } catch (err) {
+    console.error("❌ Error deleting task:", err);
+    alert(`❌ Error: ${err.message}`);
+  }
+};
+
   const startEditingTask = (task) => {
-    setEditingTaskId(task.id);
-    setFormData(task);
-    setSelectedDate(task.date);
-  };
+  setEditingTaskId(task.id);
+  setFormData({
+    text: task.text,
+    priority: task.priority,
+    description: task.description,
+    time: task.time || ""
+  });
+  setSelectedDate(task.date);
+};
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -187,7 +331,7 @@ const currentMonthTasks = tasks.filter((t) => {
                 color: themeColor ? "#fff" : "#4338ca",
               }}
             >
-              ←
+              
             </button>
             <div>{monthName}</div>
             <button
@@ -197,7 +341,7 @@ const currentMonthTasks = tasks.filter((t) => {
                 color: themeColor ? "#fff" : "#4338ca",
               }}
             >
-              →
+            
             </button>
           </div>
 
@@ -242,8 +386,28 @@ const currentMonthTasks = tasks.filter((t) => {
                       />
                     ))}
                   </ul>
+                 
+                </div>
+              );
+            })}
+          </div>
 
-                  {(selectedDate || editingTaskId) && day && (
+          {/* Legend */}
+          <div className="calendar-legend">
+            <div className="legend-item">
+              <span className="legend-color legend-high"></span> High Priority
+            </div>
+            <div className="legend-item">
+              <span className="legend-color legend-medium"></span> Medium Priority
+            </div>
+            <div className="legend-item">
+              <span className="legend-color legend-low"></span> Low Priority
+            </div>
+          </div>
+        </div>
+      </main>
+
+       {(selectedDate || editingTaskId) &&(
                     <div className="modal-overlay">
                       <div
                         className="modal"
@@ -289,25 +453,7 @@ const currentMonthTasks = tasks.filter((t) => {
                       </div>
                     </div>
                   )}
-                </div>
-              );
-            })}
-          </div>
 
-          {/* Legend */}
-          <div className="calendar-legend">
-            <div className="legend-item">
-              <span className="legend-color legend-high"></span> High Priority
-            </div>
-            <div className="legend-item">
-              <span className="legend-color legend-medium"></span> Medium Priority
-            </div>
-            <div className="legend-item">
-              <span className="legend-color legend-low"></span> Low Priority
-            </div>
-          </div>
-        </div>
-      </main>
         {/* Detailed Tasks Section */}
 <div className="tasks-panel">
   <h2>Tasks for {monthName}</h2>
@@ -385,7 +531,7 @@ const TaskItem = ({ task, deleteTask, startEditingTask, editingTaskId, formData,
               <button onClick={() => startEditingTask(task)}>✎</button>
               <button onClick={() => deleteTask(task.id)}>×</button>
             </div>
-            )};
+            )}
           </div>
           {task.time && <div className="task-time">{task.time}</div>}
           {task.description && <div className="task-description">{task.description}</div>}
